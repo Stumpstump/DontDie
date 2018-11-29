@@ -16,9 +16,12 @@ namespace Math
                 Func<float, float> f = x => -4 * height * x * x + 4 * height * x;
     //             // 
                 var mid = Vector3.Lerp(start, end, currentTime);
+            if (currentTime > 1)
+                mid = end * currentTime;
+
                 return new Vector3(mid.x, f(currentTime) + Mathf.Lerp(start.y, end.y, currentTime), mid.z);
                       
             }
-        }
+    }
     
 }

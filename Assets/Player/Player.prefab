@@ -127,36 +127,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SprintingSpeedModifier: 150
-  NormalJump:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0.4987793
-      value: 0.002357483
-      inSlope: Infinity
-      outSlope: Infinity
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  SprintJump:
-    serializedVersion: 2
-    m_Curve: []
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+  MaxCameraXAngle: 90
   JumpHeight: 0.5
+  WindDownDuration: 0.5
+  Gravity: -5
   JumpDuration: 0.8
-  Gravity: -2
-  ForwardSpeed: 2
+  WindUpDuration: 0.5
+  ForwardSpeed: 2.01
   BackwardSpeed: 1
   StrafeSpeed: 1.5
-  WindUpDuration: 0.5
-  WindDownDuration: 0.5
-  MaxCameraXAngle: 90
   SpeedFactor: 100
 --- !u!1 &1570323970938879865
 GameObject:
