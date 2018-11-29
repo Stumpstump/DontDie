@@ -6,6 +6,7 @@ namespace Player
 {
     public class PlayerMovement : MonoBehaviour
     {
+        public float PowerUpPickUpRange;
 
         [Tooltip("In Percent")]
         public float SprintingSpeedModifier;
@@ -16,7 +17,7 @@ namespace Player
         public float Gravity;
         public float JumpDuration;
         public float WindUpDuration;
-
+    
         public float ForwardSpeed;
         public float BackwardSpeed;
         public float StrafeSpeed;
@@ -25,12 +26,20 @@ namespace Player
         private float SpeedFactor = 100;
 
         private Camera FirstPersonCamera;
+
         private CharacterController Controller;
+
         private PlayerMovementStatus MovementStatus;
-        private PlayerMovementStatus LastMovementStatus;
+
+        private SpeedPowerUp CurrentSpeedPowerUp = new SpeedPowerUp();        
+
         private Vector3 DirectionalMovementInputs = new Vector3();
         private Vector3 LastDirectionalMovementInputs = new Vector3();
+
+        private Vector3 LastDirectionalMovement = new Vector3();
+
         private float Speed = 0;
+        private float ElapsedSpeedPowerUpTime;
    
         private bool isWindingDown = false;
         private bool isWindingUp = false;
@@ -40,6 +49,7 @@ namespace Player
 
         Coroutine WindUpCouroutine;
         Coroutine WindDownCouroutine;
+        Coroutine FallCoroutine;
 
         // Start is called before the first frame update
         void Awake()
@@ -54,6 +64,8 @@ namespace Player
         {
             DirectionalMovementInputs = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
             DirectionalMovementInputs.Normalize();
+            CheckForPowerUps();
+            UpdateSpeedFactor();
             UpdateMovementStatus();
             UpdateSpeed();
             Rotate();
@@ -68,8 +80,7 @@ namespace Player
 
                 case PlayerMovementStatus.Idling:
                     {
-                        LastDirectionalMovementInputs = new Vector3(0, 0, 0);
-                        Controller.Move(new Vector3(0, Gravity, 0) * Time.deltaTime);
+                        Move();
                         break;
                     }
             }            
@@ -78,14 +89,16 @@ namespace Player
         void Move()
         {
             if (WindDownCouroutine != null)
+            {
                 DirectionalMovementInputs = LastDirectionalMovementInputs;
+            }
 
             LastDirectionalMovementInputs = DirectionalMovementInputs;
-
-            Vector3 Movement = transform.TransformDirection(DirectionalMovementInputs) * Time.deltaTime * Speed * SpeedFactor / 100;
+            Vector3 Movement = new Vector3();
+            Movement = transform.TransformDirection(DirectionalMovementInputs) * Time.deltaTime * Speed * SpeedFactor / 100;
             Movement.y = Gravity * Time.deltaTime;
 
-            Controller.Move(Movement);                            
+            Controller.Move(Movement);
         }
 
         void Rotate()
@@ -130,12 +143,32 @@ namespace Player
 
             } while (!Controller.isGrounded && Controller.collisionFlags != CollisionFlags.Above);
 
+            LastDirectionalMovementInputs = new Vector3(0, 0, 0);
             isJumping = false;
         }
 
+        IEnumerator FallEvent()
+        {
+            Vector3 Direction = transform.TransformDirection(LastDirectionalMovementInputs) * Speed * SpeedFactor / 100;
+            Vector3 MovementTillNow = new Vector3();
+
+            float ElapsedTime = 0f;            
+            Direction.y = Gravity;
+            do
+            {
+                ElapsedTime += Time.deltaTime;
+                Controller.Move((Math.MathParabola.Parabola(Vector3.zero, Direction, 0, ElapsedTime, 1f) + new Vector3(0, Gravity * Time.deltaTime, 0)) - MovementTillNow);
+                MovementTillNow = Math.MathParabola.Parabola(Vector3.zero, Direction, 0, ElapsedTime, 1f);
+                yield return null;
+            } while (!Controller.isGrounded && Controller.collisionFlags != CollisionFlags.Above);
+
+            FallCoroutine = null;
+        }
+        
+
         void UpdateSpeed()
         {
-            if (isJumping)
+            if (isJumping || FallCoroutine != null)
                 return;
 
             float WalkingSpeed = GetWalkingSpeed();
@@ -181,9 +214,15 @@ namespace Player
 
         void UpdateMovementStatus()        
         {
-            if (isJumping) return;
+            if (isJumping || FallCoroutine != null) return;
 
-            if (Input.GetKeyDown(KeyCode.Space))
+            else if(!Controller.isGrounded && Controller.collisionFlags != CollisionFlags.Above && FallCoroutine == null)
+            {
+                FallCoroutine = StartCoroutine(FallEvent());
+                MovementStatus = PlayerMovementStatus.Falling;
+            }
+
+            else if (Input.GetKeyDown(KeyCode.Space))
             {
                 MovementStatus = PlayerMovementStatus.Jumping;
 
@@ -201,6 +240,7 @@ namespace Player
                 Jump();
                 return;
             }
+
             
             else if(!isMovementInputZero())
             {
@@ -244,6 +284,13 @@ namespace Player
             SpeedFactor = newFactor;            
         }
 
+        public void SetNewSpeedPowerUp(SpeedPowerUp newPowerUp)
+        {
+            ElapsedSpeedPowerUpTime = 0f;
+            CurrentSpeedPowerUp.Duration = newPowerUp.Duration;
+            CurrentSpeedPowerUp.SpeedValue = newPowerUp.SpeedValue;
+        }
+
         IEnumerator WindUp()
         {
            
@@ -284,6 +331,42 @@ namespace Player
             Speed = 0f;
             isWindingDown = false;
             WindDownCouroutine = null;
+        }
+        
+
+        void UpdateSpeedFactor()
+        {
+            SpeedFactor = 100;
+            RaycastHit ground;
+            if (Physics.BoxCast(transform.position, Controller.bounds.extents, Vector3.down, out ground))
+            {
+                if (ground.transform.GetComponent<SpeedField>() != null) SpeedFactor += ground.transform.GetComponent<SpeedField>().SpeedValue;
+            }
+
+            if (ElapsedSpeedPowerUpTime < CurrentSpeedPowerUp.Duration)
+            {
+                SpeedFactor += CurrentSpeedPowerUp.SpeedValue;
+                ElapsedSpeedPowerUpTime += Time.deltaTime;
+            }
+
+        }
+
+        void CheckForPowerUps()
+        {
+            Collider[] colliders = Physics.OverlapBox(transform.position, new Vector3(PowerUpPickUpRange/2, 1, PowerUpPickUpRange/2));
+            foreach(var collider in colliders)
+            {
+                if(collider.GetComponent<IPowerUp>() != null)
+                {
+                    collider.GetComponent<IPowerUp>().OnPickedUp(this);
+                }
+            }
+        }
+
+        void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(transform.position, new Vector3(PowerUpPickUpRange, 2, PowerUpPickUpRange));
         }
 
     }
