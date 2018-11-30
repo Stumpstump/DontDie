@@ -1,11 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace Player
 {
     public class PlayerMovement : MonoBehaviour
     {
+        public EventHandler PowerUps;
 
         [Tooltip("In Percent")]
         public float SprintingSpeedModifier;
@@ -16,26 +18,39 @@ namespace Player
         public float Gravity;
         public float JumpDuration;
         public float WindUpDuration;
-
+    
         public float ForwardSpeed;
         public float BackwardSpeed;
         public float StrafeSpeed;
-       
+
         [SerializeField]
         private float SpeedFactor = 100;
 
         private Camera FirstPersonCamera;
+
         private CharacterController Controller;
+
         private PlayerMovementStatus MovementStatus;
-        private PlayerMovementStatus LastMovementStatus;
+
+        private SpeedPowerUp CurrentSpeedPowerUp = new SpeedPowerUp();        
+
         private Vector3 DirectionalMovementInputs = new Vector3();
         private Vector3 LastDirectionalMovementInputs = new Vector3();
+
+        private Vector3 LastDirectionalMovement = new Vector3();
+
         private float Speed = 0;
-        private float WindUpCounter = 0;
-        private float WindDownCounter = 0;       
+        private float ElapsedSpeedPowerUpTime;
+   
         private bool isWindingDown = false;
         private bool isWindingUp = false;
         private bool isJumping = false;
+        bool stopWindingUp = false;
+        bool stopWindingDown = false;
+
+        Coroutine WindUpCouroutine;
+        Coroutine WindDownCouroutine;
+        Coroutine FallCoroutine;
 
         // Start is called before the first frame update
         void Awake()
@@ -47,13 +62,17 @@ namespace Player
 
         // Update is called once per frame
         void Update()
-        {
-           
+        {        
+            //Get the W,A,S and D input and normalize it
             DirectionalMovementInputs = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
             DirectionalMovementInputs.Normalize();
+
+            //Update the active Power Ups
+            PowerUps?.Invoke(this, new EventArgs());
+
             UpdateMovementStatus();
-            Rotate();
             UpdateSpeed();
+            Rotate();
             
             switch(MovementStatus)
             {
@@ -65,8 +84,7 @@ namespace Player
 
                 case PlayerMovementStatus.Idling:
                     {
-                        LastDirectionalMovementInputs = new Vector3(0, 0, 0);
-                        Controller.Move(new Vector3(0, Gravity, 0) * Time.deltaTime);
+                        Move();
                         break;
                     }
             }            
@@ -74,17 +92,17 @@ namespace Player
 
         void Move()
         {
-            if(isWindingDown)
+            if (WindDownCouroutine != null)
             {
                 DirectionalMovementInputs = LastDirectionalMovementInputs;
             }
 
             LastDirectionalMovementInputs = DirectionalMovementInputs;
-
-            Vector3 Movement = transform.TransformDirection(DirectionalMovementInputs) * Time.deltaTime * Speed * SpeedFactor / 100;
+            Vector3 Movement = new Vector3();
+            Movement = transform.TransformDirection(DirectionalMovementInputs) * Time.deltaTime * Speed * SpeedFactor / 100;
             Movement.y = Gravity * Time.deltaTime;
 
-            Controller.Move(Movement);                            
+            Controller.Move(Movement);
         }
 
         void Rotate()
@@ -122,64 +140,57 @@ namespace Player
             do
             {
                 JumpTime += Time.deltaTime;
+
                 Controller.Move(Math.MathParabola.Parabola(Vector3.zero, Direction, JumpHeight, JumpTime, JumpDuration) - MovementTillNow);
-                MovementTillNow = Math.MathParabola.Parabola(Vector3.zero, Direction, JumpHeight, JumpTime, JumpDuration);
+                MovementTillNow = Math.MathParabola.Parabola(Vector3.zero, Direction, JumpHeight, JumpTime, JumpDuration);                
+                yield return null;
+
+            } while (!Controller.isGrounded && Controller.collisionFlags != CollisionFlags.Above);
+
+            LastDirectionalMovementInputs = new Vector3(0, 0, 0);
+            isJumping = false;
+        }
+
+        IEnumerator FallEvent()
+        {
+            Vector3 Direction = transform.TransformDirection(LastDirectionalMovementInputs) * Speed * SpeedFactor / 100;
+            Vector3 MovementTillNow = new Vector3();
+
+            float ElapsedTime = 0f;            
+            Direction.y = Gravity;
+            do
+            {
+                ElapsedTime += Time.deltaTime;
+                Controller.Move((Math.MathParabola.Parabola(Vector3.zero, Direction, 0, ElapsedTime, 1f) + new Vector3(0, Gravity * Time.deltaTime, 0)) - MovementTillNow);
+                MovementTillNow = Math.MathParabola.Parabola(Vector3.zero, Direction, 0, ElapsedTime, 1f);
                 yield return null;
             } while (!Controller.isGrounded && Controller.collisionFlags != CollisionFlags.Above);
 
-            isJumping = false;
-            UpdateMovementStatus();
+            FallCoroutine = null;
         }
+        
 
         void UpdateSpeed()
         {
-            if (isJumping)
+            if (isJumping || FallCoroutine != null)
                 return;
 
             float WalkingSpeed = GetWalkingSpeed();
             float SprintingSpeed = WalkingSpeed / 100 * SprintingSpeedModifier;
             float DesiredSpeed = !Input.GetKey(KeyCode.LeftShift) ? WalkingSpeed : SprintingSpeed;
 
-            if (isWindingDown)
-            {
-                WindDownCounter += Time.deltaTime;
-                Speed = Mathf.Lerp(DesiredSpeed, 0, WindDownCounter / WindDownDuration);
-                if (Speed == 0)
-                {
-                    isWindingDown = false;
-                    WindDownCounter = 0f;
-                }
-            }
-
-            else if (isWindingUp)
-            {
-                if (Speed > DesiredSpeed)
-                {
-                    Speed = DesiredSpeed;
-                    return;
-                }
-
-                WindUpCounter += Time.deltaTime;
-                Speed = Mathf.Lerp(0f, DesiredSpeed, WindUpCounter / WindUpDuration);
-                if (Speed == DesiredSpeed)
-                {
-                    isWindingUp = false;
-                    WindUpCounter = 0f;
-                }
-            }
-
-            else Speed = DesiredSpeed;
+            if (WindUpCouroutine == null && WindDownCouroutine == null)
+                Speed = DesiredSpeed;
         }
 
-        //I really have to find a better name for this ^^
-        bool WannaMove()
+        bool isMovementInputZero()
         {
               return DirectionalMovementInputs.x != 0 || DirectionalMovementInputs.z != 0;        
         }
 
         float GetWalkingSpeed()
         {
-            if(WannaMove())
+            if(isMovementInputZero())
             {
                 if (DirectionalMovementInputs.z > 0)
                     return ForwardSpeed;
@@ -207,69 +218,125 @@ namespace Player
 
         void UpdateMovementStatus()        
         {
-            if (isJumping) return;
+            if (isJumping || FallCoroutine != null) return;
 
-            PlayerMovementStatus newMovementStatus = PlayerMovementStatus.Default;
-
-            if (isJumping == false && Input.GetKeyDown(KeyCode.Space))
-                newMovementStatus = PlayerMovementStatus.Jumping;
-
-            else if (WannaMove() && MovementStatus != PlayerMovementStatus.Walking)            
-                newMovementStatus = PlayerMovementStatus.Walking;               
-            
-            else if (!WannaMove() && MovementStatus != PlayerMovementStatus.Idling)
-                newMovementStatus = PlayerMovementStatus.Idling;
-
-            //Stop winding down if the player is not idling but just changing the direction
-            if(newMovementStatus != PlayerMovementStatus.Idling && MovementStatus == PlayerMovementStatus.Walking)
+            else if(!Controller.isGrounded && Controller.collisionFlags != CollisionFlags.Above && FallCoroutine == null)
             {
-                isWindingDown = false;
-                WindDownCounter = 0f;
+                FallCoroutine = StartCoroutine(FallEvent());
+                MovementStatus = PlayerMovementStatus.Falling;
             }
 
-            if(newMovementStatus != PlayerMovementStatus.Default)
+            else if (Input.GetKeyDown(KeyCode.Space))
             {
-                if (newMovementStatus == PlayerMovementStatus.Walking)
+                MovementStatus = PlayerMovementStatus.Jumping;
+
+                if (WindDownCouroutine != null)
                 {
-                    isWindingUp = true;
-                    WindUpCounter = 0f;
+                    StopCoroutine(WindDownCouroutine);
+                    WindDownCouroutine = null;
                 }
 
-
-                else if (newMovementStatus == PlayerMovementStatus.Idling)
+                if(WindUpCouroutine != null)
                 {
-                    //Wind down before changing the status to idle
-                    if(MovementStatus == PlayerMovementStatus.Walking)
-                    {
-                        if (Speed != 0)
-                        {
-                            if (!isWindingDown)
-                            {
-                                isWindingDown = true;
-                            }
-
-                            newMovementStatus = PlayerMovementStatus.Walking;
-                        }
-
-                    }
+                    StopCoroutine(WindUpCouroutine);
+                    WindUpCouroutine = null;
                 }
-
-                else if (newMovementStatus == PlayerMovementStatus.Jumping)
-                {
-                    Jump();
-                }
-
-                MovementStatus = newMovementStatus;
+                Jump();
+                return;
             }
 
             
+            else if(!isMovementInputZero())
+            {
+                if (WindDownCouroutine == null && Speed > 0)
+                {
+                    WindDownCouroutine = StartCoroutine(WindDown());                
+                }
 
+                if (Speed == 0)
+                    MovementStatus = PlayerMovementStatus.Idling;
+                else
+                    MovementStatus = PlayerMovementStatus.Walking;
+
+                if (WindUpCouroutine != null)
+                {
+                    StopCoroutine(WindUpCouroutine);
+                    WindUpCouroutine = null;
+                }
+
+            }
+
+            else if(isMovementInputZero())
+            {
+                if (WindDownCouroutine != null)
+                {
+                    StopCoroutine(WindDownCouroutine);
+                    WindDownCouroutine = null;
+                }
+
+                if (Speed > 0)
+                    MovementStatus = PlayerMovementStatus.Walking;
+
+                if (Speed == 0 && WindUpCouroutine == null)
+                    WindUpCouroutine = StartCoroutine(WindUp());                    
+            }
+            
         }
 
-        public void ChangeSpeedFactor(int newFactor)
+        public void ChangeSpeedFactor(int amountToChange)
         {
-            SpeedFactor = newFactor;
+            SpeedFactor += amountToChange;            
         }
+
+        public void SetNewSpeedPowerUp(SpeedPowerUp newPowerUp)
+        {
+            ElapsedSpeedPowerUpTime = 0f;
+            CurrentSpeedPowerUp.Duration = newPowerUp.Duration;
+            CurrentSpeedPowerUp.SpeedValue = newPowerUp.SpeedValue;
+        }
+
+        IEnumerator WindUp()
+        {
+           
+            float WindUpCounter = 0f;
+            isWindingUp = true;
+            float WalkingSpeed = GetWalkingSpeed();
+            float SprintingSpeed = WalkingSpeed / 100 * SprintingSpeedModifier;
+            float DesiredSpeed = !Input.GetKey(KeyCode.LeftShift) ? WalkingSpeed : SprintingSpeed;
+            float StartingSpeed = Speed;
+
+            while (WindUpCounter < WindUpDuration)
+            {
+                WindUpCounter += Time.deltaTime;
+                Speed = Mathf.Lerp(StartingSpeed, DesiredSpeed, WindUpCounter/WindUpDuration);
+                yield return null;
+            }
+
+            Speed = DesiredSpeed;
+            isWindingUp = false;
+            WindUpCouroutine = null;
+        }
+
+        IEnumerator WindDown()
+        {
+            float WindDownCounter = 0f;
+            float StartingSpeed = Speed;
+            while(WindDownCounter < WindDownDuration)
+            {
+                float WalkingSpeed = GetWalkingSpeed();
+                float SprintingSpeed = WalkingSpeed / 100 * SprintingSpeedModifier;
+                float DesiredSpeed = !Input.GetKey(KeyCode.LeftShift) ? WalkingSpeed : SprintingSpeed;
+                WindDownCounter += Time.deltaTime;
+                Speed = Mathf.Lerp(StartingSpeed, 0, WindDownCounter/WindDownDuration);
+                yield return null;
+            }
+
+
+            Speed = 0f;
+            isWindingDown = false;
+            WindDownCouroutine = null;
+        }
+      
     }
 
 }
