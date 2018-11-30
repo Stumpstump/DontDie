@@ -1548,16 +1548,19 @@ PrefabInstance:
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1570323970340200793, guid: fece27a40167ad346acde8264631f8c7,
+
         type: 3}
       propertyPath: StrafeSpeed
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1570323970340200793, guid: fece27a40167ad346acde8264631f8c7,
+
         type: 3}
       propertyPath: WindDownDuration
       value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 1570323970340200793, guid: fece27a40167ad346acde8264631f8c7,
+
         type: 3}
       propertyPath: WindUpDuration
       value: 0.4
@@ -1568,11 +1571,13 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: abe866b27abed4b7388305b0a66cd88a, type: 2}
     - target: {fileID: 1570323970340200792, guid: fece27a40167ad346acde8264631f8c7,
+
         type: 3}
       propertyPath: m_StepOffset
       value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 1570323970938879865, guid: fece27a40167ad346acde8264631f8c7,
+
         type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -1585,4 +1590,5 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 455023210737080632}
   m_PrefabAsset: {fileID: 0}
+
 
