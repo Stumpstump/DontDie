@@ -2,9 +2,5 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity;
+using System;
 
-
-public interface IPowerUp
-{
-    void OnPickedUp(Player.PlayerMovement player);
-}
