@@ -1,12 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace Player
 {
     public class PlayerMovement : MonoBehaviour
     {
-        public float PowerUpPickUpRange;
+        public EventHandler PowerUps;
 
         [Tooltip("In Percent")]
         public float SprintingSpeedModifier;
@@ -61,11 +62,14 @@ namespace Player
 
         // Update is called once per frame
         void Update()
-        {
+        {        
+            //Get the W,A,S and D input and normalize it
             DirectionalMovementInputs = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
             DirectionalMovementInputs.Normalize();
-            CheckForPowerUps();
-            UpdateSpeedFactor();
+
+            //Update the active Power Ups
+            PowerUps?.Invoke(this, new EventArgs());
+
             UpdateMovementStatus();
             UpdateSpeed();
             Rotate();
@@ -279,9 +283,9 @@ namespace Player
             
         }
 
-        public void ChangeSpeedFactor(int newFactor)
+        public void ChangeSpeedFactor(int amountToChange)
         {
-            SpeedFactor = newFactor;            
+            SpeedFactor += amountToChange;            
         }
 
         public void SetNewSpeedPowerUp(SpeedPowerUp newPowerUp)
@@ -332,43 +336,7 @@ namespace Player
             isWindingDown = false;
             WindDownCouroutine = null;
         }
-        
-
-        void UpdateSpeedFactor()
-        {
-            SpeedFactor = 100;
-            RaycastHit ground;
-            if (Physics.BoxCast(transform.position, Controller.bounds.extents, Vector3.down, out ground))
-            {
-                if (ground.transform.GetComponent<SpeedField>() != null) SpeedFactor += ground.transform.GetComponent<SpeedField>().SpeedValue;
-            }
-
-            if (ElapsedSpeedPowerUpTime < CurrentSpeedPowerUp.Duration)
-            {
-                SpeedFactor += CurrentSpeedPowerUp.SpeedValue;
-                ElapsedSpeedPowerUpTime += Time.deltaTime;
-            }
-
-        }
-
-        void CheckForPowerUps()
-        {
-            Collider[] colliders = Physics.OverlapBox(transform.position, new Vector3(PowerUpPickUpRange/2, 1, PowerUpPickUpRange/2));
-            foreach(var collider in colliders)
-            {
-                if(collider.GetComponent<IPowerUp>() != null)
-                {
-                    collider.GetComponent<IPowerUp>().OnPickedUp(this);
-                }
-            }
-        }
-
-        void OnDrawGizmosSelected()
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireCube(transform.position, new Vector3(PowerUpPickUpRange, 2, PowerUpPickUpRange));
-        }
-
+      
     }
 
 }

@@ -12,4 +12,12 @@ public class PowerUpEditor : Editor
 
         NewPowerUp.name = "Speed Power Up";
     }
+
+    [MenuItem("GameObject/Speed Fields/Speed Up", false, 0)]
+    static void CreateSpeedUpField()
+    {
+        GameObject NewField = Instantiate(Resources.Load("SpeedUpField") as GameObject, Selection.activeTransform);
+
+        NewField.name = "Speed Up Field";
+    }
 }
