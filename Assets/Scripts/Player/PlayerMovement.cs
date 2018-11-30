@@ -133,7 +133,7 @@ namespace Player
         IEnumerator JumpEvent()
         {
             Vector3 MovementTillNow = new Vector3();
-            Vector3 Direction = transform.TransformDirection(LastDirectionalMovementInputs) * Speed * SpeedFactor / 100;
+            Vector3 Direction = transform.TransformDirection(LastDirectionalMovementInputs) * Speed;
             Direction.y = 0f;
 
             float JumpTime = 0f;
