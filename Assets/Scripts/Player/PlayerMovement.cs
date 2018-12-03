@@ -10,6 +10,9 @@ namespace Player
         public EventHandler PowerUps;
 
         [Tooltip("In Percent")]
+        public float MouseSensitivity;
+
+        [Tooltip("In Percent")]
         public float SprintingSpeedModifier;
 
         public float MaxCameraXAngle;
@@ -110,8 +113,8 @@ namespace Player
             Vector3 CharacterRotation = new Vector3(transform.eulerAngles.x, 0, transform.eulerAngles.z);
             Vector3 CameraRotation = new Vector3(0, FirstPersonCamera.transform.eulerAngles.y, FirstPersonCamera.transform.eulerAngles.z);
 
-            CharacterRotation.y = transform.eulerAngles.y - Input.GetAxisRaw("Mouse X") * -1;
-            CameraRotation.x = FirstPersonCamera.transform.eulerAngles.x - Input.GetAxisRaw("Mouse Y");
+            CharacterRotation.y = transform.eulerAngles.y - Input.GetAxisRaw("Mouse X") * -1 * MouseSensitivity / 100;
+            CameraRotation.x = FirstPersonCamera.transform.eulerAngles.x - Input.GetAxisRaw("Mouse Y") * MouseSensitivity / 100;
 
             if (FirstPersonCamera.transform.eulerAngles.x > MaxCameraXAngle) CameraRotation.x -= 360;
 
