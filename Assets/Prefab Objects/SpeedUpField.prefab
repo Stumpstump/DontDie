@@ -11,12 +11,11 @@ GameObject:
   - component: {fileID: 7375965636549150224}
   - component: {fileID: 7375965636549150225}
   - component: {fileID: 7375965636549150230}
-  - component: {fileID: 7375965636549150231}
   - component: {fileID: 7375965636549150228}
   - component: {fileID: 7375965636549150229}
   - component: {fileID: 7375965636549150227}
   m_Layer: 0
-  m_Name: Speed Up Field
+  m_Name: SpeedUpField
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31,7 +30,7 @@ Transform:
   m_GameObject: {fileID: 7375965636549150234}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3, y: 0.05, z: 3}
+  m_LocalScale: {x: 20, y: 0.05, z: 20}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -81,22 +80,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &7375965636549150231
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7375965636549150234}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
-  m_Script: {fileID: 11500000, guid: 9daee9452fa04f144a26c43c87667adb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ExtendSpeedDuration: 0
-  Duration: 0
-  SpeedValue: 0
 --- !u!114 &7375965636549150228
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112,7 +95,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ExtendSpeedDuration: 1
   Duration: 2
-  SpeedValue: 100
+  SpeedValue: 200
 --- !u!135 &7375965636549150229
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -124,8 +107,8 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!64 &7375965636549150227
 MeshCollider:
   m_ObjectHideFlags: 0
