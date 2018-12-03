@@ -20,11 +20,14 @@ namespace Player
         public float WindDownDuration;
         public float Gravity;
         public float JumpDuration;
+        
+        [Tooltip("Time the player needs to fully rest on the x and z axes while jumping/falling")]
+        public float GravityWeight;
         public float WindUpDuration;
     
         public float ForwardSpeed;
         public float BackwardSpeed;
-        public float StrafeSpeed;
+        public float StrafeSpeed;    
 
         [SerializeField]
         private float SpeedFactor = 100;
@@ -139,13 +142,30 @@ namespace Player
             Vector3 Direction = transform.TransformDirection(LastDirectionalMovementInputs) * Speed;
             Direction.y = 0f;
 
+            float elapsedFallingDownTime = 0f;
             float JumpTime = 0f;
             do
             {
                 JumpTime += Time.deltaTime;
+                Vector3 DirectionThisUpdate = Direction;
 
-                Controller.Move(Math.MathParabola.Parabola(Vector3.zero, Direction, JumpHeight, JumpTime, JumpDuration) - MovementTillNow);
-                MovementTillNow = Math.MathParabola.Parabola(Vector3.zero, Direction, JumpHeight, JumpTime, JumpDuration);                
+                Vector3 MovementThisUpdate = Math.MathParabola.Parabola(Vector3.zero, DirectionThisUpdate, JumpHeight, JumpTime, JumpDuration) - MovementTillNow;
+
+                if(JumpTime / JumpDuration > 0.5 && GravityWeight > 0)
+                {                    
+                    if (elapsedFallingDownTime > GravityWeight)
+                        elapsedFallingDownTime = GravityWeight;
+
+                    MovementThisUpdate.x = Mathf.Lerp(MovementThisUpdate.x, 0, elapsedFallingDownTime / GravityWeight);
+                    MovementThisUpdate.y -= Gravity * Time.deltaTime;
+                    MovementThisUpdate.z = Mathf.Lerp(MovementThisUpdate.z, 0, elapsedFallingDownTime / GravityWeight);
+                    elapsedFallingDownTime += Time.deltaTime;
+                }
+
+                Controller.Move(MovementThisUpdate);
+
+                MovementTillNow += MovementThisUpdate;
+
                 yield return null;
 
             } while (!Controller.isGrounded && Controller.collisionFlags != CollisionFlags.Above);
@@ -156,16 +176,34 @@ namespace Player
 
         IEnumerator FallEvent()
         {
-            Vector3 Direction = transform.TransformDirection(LastDirectionalMovementInputs) * Speed * SpeedFactor / 100;
+            Vector3 Direction = transform.TransformDirection(LastDirectionalMovementInputs) * Speed;
             Vector3 MovementTillNow = new Vector3();
 
+            float elapsedFallingDownTime = 0f;
             float ElapsedTime = 0f;            
             Direction.y = Gravity;
             do
             {
+                Vector3 DirectionThisUpdate = Direction;
                 ElapsedTime += Time.deltaTime;
-                Controller.Move((Math.MathParabola.Parabola(Vector3.zero, Direction, 0, ElapsedTime, 1f) + new Vector3(0, Gravity * Time.deltaTime, 0)) - MovementTillNow);
-                MovementTillNow = Math.MathParabola.Parabola(Vector3.zero, Direction, 0, ElapsedTime, 1f);
+
+                Vector3 MovementThisUpdate = Math.MathParabola.Parabola(Vector3.zero, DirectionThisUpdate, JumpHeight, ElapsedTime, JumpDuration) - MovementTillNow;
+
+                if (ElapsedTime / JumpDuration > 0.5 && GravityWeight != 0)
+                {
+
+                    elapsedFallingDownTime += Time.deltaTime;
+                    if (elapsedFallingDownTime >= GravityWeight)
+                        elapsedFallingDownTime = GravityWeight;
+
+                    MovementThisUpdate.x = Mathf.Lerp(MovementThisUpdate.x, 0, elapsedFallingDownTime / GravityWeight);
+                    MovementThisUpdate.y -= GravityWeight * Time.deltaTime;
+                    MovementThisUpdate.z = Mathf.Lerp(MovementThisUpdate.z, 0, elapsedFallingDownTime / GravityWeight);
+                }
+
+
+                Controller.Move(MovementThisUpdate);
+                MovementTillNow += MovementThisUpdate;
                 yield return null;
             } while (!Controller.isGrounded && Controller.collisionFlags != CollisionFlags.Above);
 

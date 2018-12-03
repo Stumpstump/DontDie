@@ -1695,6 +1695,11 @@ PrefabInstance:
       propertyPath: MouseSensitivity
       value: 100
       objectReference: {fileID: 0}
+    - target: {fileID: 1570323970340200793, guid: fece27a40167ad346acde8264631f8c7,
+        type: 3}
+      propertyPath: GravityWeight
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 1570323970340200792, guid: fece27a40167ad346acde8264631f8c7,
         type: 3}
       propertyPath: m_SlopeLimit
@@ -1704,6 +1709,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_StepOffset
       value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1570323970340200792, guid: fece27a40167ad346acde8264631f8c7,
+        type: 3}
+      propertyPath: m_MinMoveDistance
+      value: 0.00001
       objectReference: {fileID: 0}
     - target: {fileID: 1570323970340200799, guid: fece27a40167ad346acde8264631f8c7,
         type: 3}
