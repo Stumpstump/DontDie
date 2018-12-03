@@ -19,7 +19,7 @@ namespace Math
                 var mid = Vector3.LerpUnclamped(start, end, currentTime);
 
 
-                return new Vector3(mid.x, f(currentTime), mid.z);
+                return new Vector3(mid.x, f(currentTime) + Mathf.LerpUnclamped(start.y, end.y, currentTime), mid.z);
                       
             }
     }

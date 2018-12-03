@@ -79,7 +79,7 @@ namespace Player
             UpdateMovementStatus();
             UpdateSpeed();
             Rotate();
-            
+
             switch(MovementStatus)
             {
                 case PlayerMovementStatus.Walking:              
@@ -151,13 +151,13 @@ namespace Player
 
                 Vector3 MovementThisUpdate = Math.MathParabola.Parabola(Vector3.zero, DirectionThisUpdate, JumpHeight, JumpTime, JumpDuration) - MovementTillNow;
 
-                if(JumpTime / JumpDuration > 0.5 && GravityWeight > 0)
+                if(JumpTime / JumpDuration > 0.45 && GravityWeight > 0)
                 {                    
                     if (elapsedFallingDownTime > GravityWeight)
                         elapsedFallingDownTime = GravityWeight;
 
                     MovementThisUpdate.x = Mathf.Lerp(MovementThisUpdate.x, 0, elapsedFallingDownTime / GravityWeight);
-                    MovementThisUpdate.y -= Gravity * Time.deltaTime;
+                    MovementThisUpdate.y -= Mathf.LerpUnclamped(0, GravityWeight, elapsedFallingDownTime /GravityWeight);
                     MovementThisUpdate.z = Mathf.Lerp(MovementThisUpdate.z, 0, elapsedFallingDownTime / GravityWeight);
                     elapsedFallingDownTime += Time.deltaTime;
                 }
@@ -187,20 +187,20 @@ namespace Player
                 Vector3 DirectionThisUpdate = Direction;
                 ElapsedTime += Time.deltaTime;
 
-                Vector3 MovementThisUpdate = Math.MathParabola.Parabola(Vector3.zero, DirectionThisUpdate, JumpHeight, ElapsedTime, JumpDuration) - MovementTillNow;
+                Vector3 MovementThisUpdate = Math.MathParabola.Parabola(Vector3.zero, DirectionThisUpdate, 0, ElapsedTime, JumpDuration) - MovementTillNow;
 
-                if (ElapsedTime / JumpDuration > 0.5 && GravityWeight != 0)
+                if (ElapsedTime / JumpDuration > 0.45 && GravityWeight != 0)
                 {
 
-                    elapsedFallingDownTime += Time.deltaTime;
                     if (elapsedFallingDownTime >= GravityWeight)
                         elapsedFallingDownTime = GravityWeight;
 
                     MovementThisUpdate.x = Mathf.Lerp(MovementThisUpdate.x, 0, elapsedFallingDownTime / GravityWeight);
-                    MovementThisUpdate.y -= GravityWeight * Time.deltaTime;
                     MovementThisUpdate.z = Mathf.Lerp(MovementThisUpdate.z, 0, elapsedFallingDownTime / GravityWeight);
+                    elapsedFallingDownTime += Time.deltaTime;
                 }
 
+                MovementThisUpdate.y += Mathf.LerpUnclamped(0, Gravity, ElapsedTime/JumpDuration);
 
                 Controller.Move(MovementThisUpdate);
                 MovementTillNow += MovementThisUpdate;
