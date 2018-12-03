@@ -6,6 +6,7 @@ TagManager:
   tags:
   - SpawnPoint
   - Spawner
+  - Stairs
   layers:
   - Default
   - TransparentFX
@@ -16,7 +17,7 @@ TagManager:
   - 
   - 
   - Spawner
-  - 
+  - Stairs
   - 
   - 
   - 
