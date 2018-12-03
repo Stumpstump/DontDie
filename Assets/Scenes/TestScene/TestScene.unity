@@ -285,6 +285,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: FbxStairs
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: cf5ec21717b28c747b9ee93e93f184af,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: cf5ec21717b28c747b9ee93e93f184af,
+        type: 3}
+      propertyPath: m_TagString
+      value: Stairs
+      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: cf5ec21717b28c747b9ee93e93f184af,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -374,6 +384,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: FbxStairs (2)
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: cf5ec21717b28c747b9ee93e93f184af,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: cf5ec21717b28c747b9ee93e93f184af,
+        type: 3}
+      propertyPath: m_TagString
+      value: Stairs
+      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: cf5ec21717b28c747b9ee93e93f184af,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -382,7 +402,7 @@ PrefabInstance:
     - target: {fileID: -4216859302048453862, guid: cf5ec21717b28c747b9ee93e93f184af,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 3.3
+      value: 3.29
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: cf5ec21717b28c747b9ee93e93f184af,
         type: 3}
@@ -463,6 +483,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: FbxStairs (3)
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: cf5ec21717b28c747b9ee93e93f184af,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: cf5ec21717b28c747b9ee93e93f184af,
+        type: 3}
+      propertyPath: m_TagString
+      value: Stairs
+      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: cf5ec21717b28c747b9ee93e93f184af,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -471,7 +501,7 @@ PrefabInstance:
     - target: {fileID: -4216859302048453862, guid: cf5ec21717b28c747b9ee93e93f184af,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 5.37
+      value: 5.36
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: cf5ec21717b28c747b9ee93e93f184af,
         type: 3}
@@ -594,6 +624,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: FbxStairs (1)
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: cf5ec21717b28c747b9ee93e93f184af,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: cf5ec21717b28c747b9ee93e93f184af,
+        type: 3}
+      propertyPath: m_TagString
+      value: Stairs
+      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: cf5ec21717b28c747b9ee93e93f184af,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -602,7 +642,7 @@ PrefabInstance:
     - target: {fileID: -4216859302048453862, guid: cf5ec21717b28c747b9ee93e93f184af,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.21
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: cf5ec21717b28c747b9ee93e93f184af,
         type: 3}
@@ -1025,6 +1065,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: FbxStairs (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: cf5ec21717b28c747b9ee93e93f184af,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: cf5ec21717b28c747b9ee93e93f184af,
+        type: 3}
+      propertyPath: m_TagString
+      value: Stairs
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: cf5ec21717b28c747b9ee93e93f184af,
         type: 3}
@@ -1560,6 +1610,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 1570323970340200794, guid: fece27a40167ad346acde8264631f8c7,
+        type: 3}
+      propertyPath: m_Layer
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 1570323970340200796, guid: fece27a40167ad346acde8264631f8c7,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1700,6 +1755,11 @@ PrefabInstance:
       propertyPath: GravityWeight
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 1570323970340200793, guid: fece27a40167ad346acde8264631f8c7,
+        type: 3}
+      propertyPath: StickToGroundForce
+      value: -9
+      objectReference: {fileID: 0}
     - target: {fileID: 1570323970340200792, guid: fece27a40167ad346acde8264631f8c7,
         type: 3}
       propertyPath: m_SlopeLimit
@@ -1729,6 +1789,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1570323970938879865, guid: fece27a40167ad346acde8264631f8c7,
+        type: 3}
+      propertyPath: m_Layer
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fece27a40167ad346acde8264631f8c7, type: 3}
