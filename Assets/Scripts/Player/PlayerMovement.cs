@@ -9,9 +9,8 @@ namespace Player
     {
         public EventHandler PowerUps;
 
-        [SerializeField] [Tooltip("In Percent")] private float MouseSensitivity;
+        [SerializeField] private PlayerCamera FirstPersonCamera;
         [SerializeField] [Tooltip("In Percent")] private float SprintingSpeedModifier;
-        [SerializeField] private float MaxCameraXAngle;
         [SerializeField] private float JumpHeight;
         [SerializeField] private float WindDownDuration;
         [SerializeField] private float Gravity;
@@ -26,7 +25,6 @@ namespace Player
         [SerializeField] private float GravityWeight;
 
         private float SpeedFactor = 100;
-        private Camera FirstPersonCamera;
         private CharacterController Controller;
         private PlayerMovementStatus MovementStatus;
         private Vector3 DirectionalMovementInputs = new Vector3();
@@ -48,7 +46,7 @@ namespace Player
         void Awake()
         {
             Controller = GetComponent<CharacterController>();
-            FirstPersonCamera = Camera.main;
+            FirstPersonCamera.Initialize(transform);
         }
 
 
@@ -64,7 +62,7 @@ namespace Player
 
             UpdateMovementStatus();
             UpdateSpeed();
-            Rotate();
+            FirstPersonCamera.Rotate();
 
             switch (MovementStatus)
             {
@@ -117,22 +115,6 @@ namespace Player
             Movement.y = StickToGroundForce * Time.deltaTime;
 
             Controller.Move(Movement);
-        }
-
-        void Rotate()
-        {
-            Vector3 CharacterRotation = new Vector3(transform.eulerAngles.x, 0, transform.eulerAngles.z);
-            Vector3 CameraRotation = new Vector3(0, FirstPersonCamera.transform.eulerAngles.y, FirstPersonCamera.transform.eulerAngles.z);
-
-            CharacterRotation.y = transform.eulerAngles.y - Input.GetAxisRaw("Mouse X") * -1 * MouseSensitivity / 100;
-            CameraRotation.x = FirstPersonCamera.transform.eulerAngles.x - Input.GetAxisRaw("Mouse Y") * MouseSensitivity / 100;
-
-            if (FirstPersonCamera.transform.eulerAngles.x > MaxCameraXAngle) CameraRotation.x -= 360;
-
-            CameraRotation.x = Mathf.Clamp(CameraRotation.x, -MaxCameraXAngle, MaxCameraXAngle);
-
-            FirstPersonCamera.transform.eulerAngles = CameraRotation;
-            transform.eulerAngles = CharacterRotation;
         }
 
         void Jump()
