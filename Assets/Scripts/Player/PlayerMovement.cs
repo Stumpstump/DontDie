@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 
 namespace Player
 {
@@ -9,9 +10,8 @@ namespace Player
     {
         public EventHandler PowerUps;
 
-        [SerializeField] [Tooltip("In Percent")] private float MouseSensitivity;
+        [SerializeField] private PlayerCamera FirstPersonCamera;
         [SerializeField] [Tooltip("In Percent")] private float SprintingSpeedModifier;
-        [SerializeField] private float MaxCameraXAngle;
         [SerializeField] private float JumpHeight;
         [SerializeField] private float WindDownDuration;
         [SerializeField] private float Gravity;
@@ -21,12 +21,12 @@ namespace Player
         [SerializeField] private float BackwardSpeed;
         [SerializeField] private float StrafeSpeed;
         [SerializeField] private float StickToGroundForce;
+        [SerializeField] private float SlideGravityAmplifier;
 
         [Tooltip("Time the player needs to fully rest on the x and z axes while jumping/falling")]
         [SerializeField] private float GravityWeight;
 
         private float SpeedFactor = 100;
-        private Camera FirstPersonCamera;
         private CharacterController Controller;
         private PlayerMovementStatus MovementStatus;
         private Vector3 DirectionalMovementInputs = new Vector3();
@@ -35,7 +35,8 @@ namespace Player
 
         private float Speed = 0;
         private float ElapsedSpeedPowerUpTime;
-   
+        private float SlideAngle;
+        private Vector3 SlideNormal;
 
 
         Coroutine WindUpCouroutine;
@@ -48,7 +49,7 @@ namespace Player
         void Awake()
         {
             Controller = GetComponent<CharacterController>();
-            FirstPersonCamera = Camera.main;
+            FirstPersonCamera.Initialize(transform);
         }
 
 
@@ -64,7 +65,7 @@ namespace Player
 
             UpdateMovementStatus();
             UpdateSpeed();
-            Rotate();
+            FirstPersonCamera.Rotate();
 
             switch (MovementStatus)
             {
@@ -80,28 +81,7 @@ namespace Player
                         break;
                     }
 
-            }
-
-            //Check the angle of the objects - move this to a function and add a slide function to it
-            RaycastHit[] hits;     
-            hits = Physics.BoxCastAll(transform.position + Vector3.up, Controller.bounds.extents, Vector3.down);
-
-
-            float currentIndex = 0;
-            float currentDistance = 1000;
-            for (int i = 0; i < hits.Length; i++)
-            {
-                RaycastHit hit = hits[i];
-                if(hit.transform != this.transform)
-                {
-                    if(hit.distance <= currentDistance)
-                    {
-                        currentDistance = hit.distance;
-                        currentIndex = i;
-                    }
-                }
-            }
-       
+            }    
         }
 
         void Move()
@@ -119,29 +99,10 @@ namespace Player
             Controller.Move(Movement);
         }
 
-        void Rotate()
-        {
-            Vector3 CharacterRotation = new Vector3(transform.eulerAngles.x, 0, transform.eulerAngles.z);
-            Vector3 CameraRotation = new Vector3(0, FirstPersonCamera.transform.eulerAngles.y, FirstPersonCamera.transform.eulerAngles.z);
-
-            CharacterRotation.y = transform.eulerAngles.y - Input.GetAxisRaw("Mouse X") * -1 * MouseSensitivity / 100;
-            CameraRotation.x = FirstPersonCamera.transform.eulerAngles.x - Input.GetAxisRaw("Mouse Y") * MouseSensitivity / 100;
-
-            if (FirstPersonCamera.transform.eulerAngles.x > MaxCameraXAngle) CameraRotation.x -= 360;
-
-            CameraRotation.x = Mathf.Clamp(CameraRotation.x, -MaxCameraXAngle, MaxCameraXAngle);
-
-            FirstPersonCamera.transform.eulerAngles = CameraRotation;
-            transform.eulerAngles = CharacterRotation;
-        }
-
         void Jump()
         {
-            if(Controller.isGrounded)
-            {
-                JumpingCoroutine = StartCoroutine(JumpEvent());
-                
-            }
+            JumpingCoroutine = StartCoroutine(JumpEvent());
+ 
         }
 
         IEnumerator JumpEvent()
@@ -269,6 +230,12 @@ namespace Player
         {
             if (JumpingCoroutine != null|| FallCoroutine != null || SlidingCoroutine != null) return;
 
+            else if(Controller.isGrounded && ShouldSlide())
+            {
+                SlidingCoroutine = StartCoroutine(Slide());
+            
+            }
+
             else if(!Controller.isGrounded && Controller.collisionFlags != CollisionFlags.Above && FallCoroutine == null)
             {
                 FallCoroutine = StartCoroutine(FallEvent());
@@ -280,7 +247,8 @@ namespace Player
                 }
             }
 
-            else if (Input.GetKeyDown(KeyCode.Space))
+
+            else if (Input.GetKeyDown(KeyCode.Space) && Controller.isGrounded)
             {
                 MovementStatus = PlayerMovementStatus.Jumping;
 
@@ -382,10 +350,47 @@ namespace Player
 
         IEnumerator Slide()
         {
-            float StartingSpeed = Speed;
-            yield return null;
+            MovementStatus = PlayerMovementStatus.Sliding;
+            float StartingSpeed = Speed *SpeedFactor / 100;
+            float Angle = SlideAngle;
+            Vector3 slideNormal = SlideNormal;
+            while (ShouldSlide())
+            {
+                Vector3 MoveThisUpdate = SlideNormal;
+                MoveThisUpdate.y = Gravity * SlideGravityAmplifier;
+
+                Controller.Move(MoveThisUpdate * Time.deltaTime * StartingSpeed);
+
+                yield return null;
+
+            }
+
+            SlidingCoroutine = null;
+
         }
       
+        bool ShouldSlide()
+        {
+            //Check the angle of the objects that got hit and take the one with the smallest distance to us
+            RaycastHit[] hits;
+            hits = Physics.BoxCastAll(transform.position + Vector3.up, Controller.bounds.extents - new Vector3(Controller.bounds.extents.x
+                 * 0.8f, Controller.bounds.extents.y * 0.8f, Controller.bounds.extents.z * 0.8f), Vector3.down);
+
+            if (hits.Length > 0)
+            {
+                var hit = hits.OrderBy(i => i.distance).First();
+                float Angle = Vector3.Angle(Vector3.up, hit.normal);
+                if (Angle > Controller.slopeLimit)
+                {
+                    SlideNormal = hit.normal;
+                    SlideAngle = Angle;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
     }
 
 }
