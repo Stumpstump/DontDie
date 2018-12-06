@@ -38,6 +38,8 @@ namespace Player
         private float SlideAngle;
         private Vector3 SlideNormal;
 
+        private Vector3 LastCollisionDistance = new Vector3();
+        private Collider coll = new Collider();
 
         Coroutine WindUpCouroutine;
         Coroutine WindDownCouroutine;
@@ -56,6 +58,7 @@ namespace Player
         // Update is called once per frame
         void Update()
         {        
+
             //Get the W,A,S and D input and normalize it
             DirectionalMovementInputs = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
             DirectionalMovementInputs.Normalize();
@@ -352,43 +355,81 @@ namespace Player
         {
             MovementStatus = PlayerMovementStatus.Sliding;
             float StartingSpeed = Speed *SpeedFactor / 100;
-            float Angle = SlideAngle;
+            float elapsedTime = 0f;
             Vector3 slideNormal = SlideNormal;
-            while (ShouldSlide())
+            do 
             {
                 Vector3 MoveThisUpdate = SlideNormal;
                 MoveThisUpdate.y = Gravity * SlideGravityAmplifier;
-
+                elapsedTime += Time.deltaTime;
                 Controller.Move(MoveThisUpdate * Time.deltaTime * StartingSpeed);
 
                 yield return null;
 
-            }
+            } while (ShouldSlide()) ;
 
             SlidingCoroutine = null;
-
+            LastDirectionalMovementInputs = new Vector3(0, 0, 0);
+            UpdateMovementStatus();
         }
       
         bool ShouldSlide()
         {
-            //Check the angle of the objects that got hit and take the one with the smallest distance to us
-            RaycastHit[] hits;
-            hits = Physics.BoxCastAll(transform.position + Vector3.up, Controller.bounds.extents - new Vector3(Controller.bounds.extents.x
-                 * 0.8f, Controller.bounds.extents.y * 0.8f, Controller.bounds.extents.z * 0.8f), Vector3.down);
-
-            if (hits.Length > 0)
+            if(Vector3.Angle(Vector3.up, SlideNormal) > Controller.slopeLimit && Vector3.Angle(Vector3.up, SlideNormal) < 90)
             {
-                var hit = hits.OrderBy(i => i.distance).First();
-                float Angle = Vector3.Angle(Vector3.up, hit.normal);
-                if (Angle > Controller.slopeLimit)
+                Vector3 p1 = Controller.transform.position + Controller.center + Vector3.up * -Controller.height * 0.5f;
+                Vector3 p2 = p1 + Vector3.up * Controller.height;
+                RaycastHit[] colliders = Physics.CapsuleCastAll(p1, p2, Controller.radius - 0.3f, transform.up * -1, 100);
                 {
-                    SlideNormal = hit.normal;
-                    SlideAngle = Angle;
-                    return true;
+                    foreach(var collider in colliders)
+                    {
+                        if(collider.collider == coll)
+                        {
+                            return true;
+                        }
+                    }                    
+
                 }
+
             }
 
+          
+
+//             //Check the angle of the objects that got hit and take the one with the smallest distance to us
+//             RaycastHit[] hits;
+//             hits = Physics.BoxCastAll(transform.position + Vector3.up, Controller.bounds.extents - new Vector3(Controller.bounds.extents.x
+//                  * 0.8f, Controller.bounds.extents.y * 0.8f, Controller.bounds.extents.z * 0.8f), Vector3.down);
+// 
+//             if (hits.Length > 0)
+//             {
+//                 var hit = hits.OrderBy(i => i.distance).First();
+//                 float Angle = Vector3.Angle(Vector3.up, hit.normal);
+//                 if (Angle > Controller.slopeLimit)
+//                 {
+//                     SlideNormal = hit.normal;
+//                     SlideAngle = Angle;
+//                     return true;
+//                 }
+//             }
+
             return false;
+        }
+
+        void OnControllerColliderHit (ControllerColliderHit hit)
+        {
+
+            Ray ray = new Ray(transform.position, hit.point- transform.position);
+            RaycastHit rayHit;
+            if(hit.collider.Raycast(ray, out rayHit, 10f))
+            {
+            //    if(Vector3.Distance(rayHit.point, transform.position) < Vector3.Distance(LastCollisionDistance, transform.position))
+            //    {
+                    LastCollisionDistance = rayHit.point;
+                    SlideNormal = rayHit.normal;
+                    coll = rayHit.collider;
+           //     }
+            }
+
         }
 
     }
