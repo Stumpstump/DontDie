@@ -35,5 +35,10 @@ namespace Player
             FirstPersonCamera.transform.eulerAngles = CameraRotation;
             Owner.eulerAngles = CharacterRotation;
         }
+
+        public Camera GetCamera()
+        {
+            return FirstPersonCamera;
+        }
     }
 }

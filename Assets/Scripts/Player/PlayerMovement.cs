@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
+using DDS;
 
 namespace Player
 {
@@ -37,6 +38,7 @@ namespace Player
         private float ElapsedSpeedPowerUpTime;
         private float SlideAngle;
         private Vector3 SlideNormal;
+        private float stepOffsset;
 
         private Vector3 LastCollisionDistance = new Vector3();
         private Collider coll = new Collider();
@@ -50,7 +52,9 @@ namespace Player
         // Start is called before the first frame update
         void Awake()
         {
+
             Controller = GetComponent<CharacterController>();
+            stepOffsset = Controller.stepOffset;
             FirstPersonCamera.Initialize(transform);
         }
 
@@ -105,7 +109,7 @@ namespace Player
         void Jump()
         {
             JumpingCoroutine = StartCoroutine(JumpEvent());
- 
+            Controller.stepOffset = 0.01f;
         }
 
         IEnumerator JumpEvent()
@@ -116,12 +120,16 @@ namespace Player
 
             float elapsedFallingDownTime = 0f;
             float JumpTime = 0f;
+
             do
             {
                 JumpTime += Time.deltaTime;
                 Vector3 DirectionThisUpdate = Direction;
-
+        
                 Vector3 MovementThisUpdate = Math.MathParabola.Parabola(Vector3.zero, DirectionThisUpdate, JumpHeight, JumpTime, JumpDuration) - MovementTillNow;
+
+                if (Controller.collisionFlags != CollisionFlags.Above && JumpDuration < 0.45f)
+                    JumpDuration = 0.5f;
 
                 if(JumpTime / JumpDuration > 0.45 && GravityWeight > 0)
                 {                    
@@ -132,6 +140,8 @@ namespace Player
                     MovementThisUpdate.y -= Mathf.LerpUnclamped(0, GravityWeight, elapsedFallingDownTime /GravityWeight);
                     MovementThisUpdate.z = Mathf.Lerp(MovementThisUpdate.z, 0, elapsedFallingDownTime / GravityWeight);
                     elapsedFallingDownTime += Time.deltaTime;
+
+                    Debug.Log(MovementTillNow + "   " + elapsedFallingDownTime);
                 }
 
                 Controller.Move(MovementThisUpdate);
@@ -140,8 +150,9 @@ namespace Player
 
                 yield return null;
 
-            } while (!Controller.isGrounded && Controller.collisionFlags != CollisionFlags.Above);
+            } while (!Controller.isGrounded);
 
+            Controller.stepOffset = stepOffsset;
             LastDirectionalMovementInputs = new Vector3(0, 0, 0);
             JumpingCoroutine = null;
         }
@@ -428,6 +439,26 @@ namespace Player
                     SlideNormal = rayHit.normal;
                     coll = rayHit.collider;
            //     }
+            }
+
+            if(JumpingCoroutine != null)
+            {
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    var point = transform.InverseTransformPoint(hit.point);
+                    if(point.z > 90)
+                    {
+                          Debug.Log("Back");
+
+                    }
+
+                    else
+                    {
+                        Debug.Log("Front");
+                    }
+
+
+                }
             }
 
         }

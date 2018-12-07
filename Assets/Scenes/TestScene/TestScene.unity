@@ -1766,6 +1766,11 @@ PrefabInstance:
       propertyPath: testSlideBounds.z
       value: 0.1
       objectReference: {fileID: 0}
+    - target: {fileID: 6581824583298496100, guid: fece27a40167ad346acde8264631f8c7,
+        type: 3}
+      propertyPath: m_StepOffset
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fece27a40167ad346acde8264631f8c7, type: 3}
 --- !u!4 &8846677865122018878 stripped
