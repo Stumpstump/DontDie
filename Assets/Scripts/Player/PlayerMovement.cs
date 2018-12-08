@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
+using DDS;
 
 namespace Player
 {
@@ -11,20 +12,29 @@ namespace Player
         public EventHandler PowerUps;
 
         [SerializeField] private PlayerCamera FirstPersonCamera;
-        [SerializeField] [Tooltip("In Percent")] private float SprintingSpeedModifier;
         [SerializeField] private float JumpHeight;
-        [SerializeField] private float WindDownDuration;
-        [SerializeField] private float Gravity;
         [SerializeField] private float JumpDuration;
-        [SerializeField] private float WindUpDuration;
+
+        [Header("Speed")]
         [SerializeField] private float ForwardSpeed;
         [SerializeField] private float BackwardSpeed;
         [SerializeField] private float StrafeSpeed;
+        [SerializeField] private float WindUpDuration;
+        [SerializeField] private float WindDownDuration;
+        [SerializeField] [Tooltip("In Percent")] private float SprintingSpeedModifier;
+
+        [Header("Gravity")]
         [SerializeField] private float StickToGroundForce;
         [SerializeField] private float SlideGravityAmplifier;
-
+        [SerializeField] private float Gravity;
         [Tooltip("Time the player needs to fully rest on the x and z axes while jumping/falling")]
         [SerializeField] private float GravityWeight;
+
+        [Header("Climbing")]
+        [SerializeField] private float MaxClimbHeight;
+        [SerializeField] private float MaxClimbDistance;
+        [SerializeField] private float ClimbingDuration;
+
 
         private float SpeedFactor = 100;
         private CharacterController Controller;
@@ -37,6 +47,7 @@ namespace Player
         private float ElapsedSpeedPowerUpTime;
         private float SlideAngle;
         private Vector3 SlideNormal;
+        private float stepOffsset;
 
         private Vector3 LastCollisionDistance = new Vector3();
         private Collider coll = new Collider();
@@ -46,12 +57,22 @@ namespace Player
         Coroutine FallCoroutine;
         Coroutine SlidingCoroutine;
         Coroutine JumpingCoroutine;
+        Coroutine ClimbCoroutine;
+
+        private Vector3 SizeOfTestBox;
+        private Vector3 PositionOfTestBox;
 
         // Start is called before the first frame update
         void Awake()
         {
             Controller = GetComponent<CharacterController>();
+            stepOffsset = Controller.stepOffset;
             FirstPersonCamera.Initialize(transform);
+        }
+
+        void OnEnabled()
+        {
+            Controller = GetComponent<CharacterController>();
         }
 
 
@@ -65,6 +86,8 @@ namespace Player
 
             //Update the active Power Ups
             PowerUps?.Invoke(this, new EventArgs());
+
+            Debug.Log(MovementStatus);
 
             UpdateMovementStatus();
             UpdateSpeed();
@@ -81,6 +104,22 @@ namespace Player
                 case PlayerMovementStatus.Idling:
                     {
                         Move();
+                        break;
+                    }
+
+                case PlayerMovementStatus.Climbing:
+                    {
+                        break;
+                    }
+
+                case PlayerMovementStatus.Falling:
+                case PlayerMovementStatus.Jumping:
+                    {
+                        if(Input.GetKeyDown(KeyCode.Space) && CanClimb())
+                        {
+                            ClimbCoroutine = StartCoroutine(ClimbEvent());
+                            MovementStatus = PlayerMovementStatus.Climbing;
+                        }
                         break;
                     }
 
@@ -105,7 +144,79 @@ namespace Player
         void Jump()
         {
             JumpingCoroutine = StartCoroutine(JumpEvent());
- 
+            Controller.stepOffset = 0.01f;
+        }
+
+        bool CanClimb()
+        {
+            Vector3 p1 = Controller.transform.position + Controller.center + Vector3.up * -Controller.height * 0.5f;
+            Vector3 p2 = p1 + Vector3.up * Controller.height;
+            RaycastHit hit;
+            if(Physics.CapsuleCast(p1, p2, Controller.radius, transform.forward, out hit, MaxClimbDistance))
+            {
+                if((int)Vector3.Angle(Vector3.up, hit.normal) == 90)
+                {
+                    RaycastHit HeightCast;
+                    if (Physics.Raycast(new Ray(hit.point + new Vector3(0, MaxClimbHeight, 0), Vector3.down), out HeightCast, MaxClimbHeight))
+                    {
+                        //Draw the gizmo and use it for the overlapbox
+                        PositionOfTestBox = hit.point;// + transform.forward * Controller.bounds.extents.z / 2;
+                        PositionOfTestBox.y = HeightCast.point.y + Controller.bounds.extents.y;
+
+                        Collider[] colliders = Physics.OverlapBox(PositionOfTestBox, Controller.bounds.extents, transform.rotation);
+                        bool canClimb = true;
+                        foreach (var col in colliders)
+                        {
+                            if(col.gameObject != this.gameObject && col.gameObject != hit.transform.gameObject)
+                            {
+                                canClimb = false;
+                            }
+                        }
+
+                        
+                        return canClimb;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        void OnDrawGizmosSelected()
+        {
+//             Gizmos.color = Color.red;
+//          // Gizmos.matrix = transform.localToWorldMatrix;
+//           Gizmos.DrawWireCube(PositionOfTestBox, Controller.bounds.size);
+        }
+
+
+
+        IEnumerator ClimbEvent()
+        {
+            float elapsedTime = 0f;
+            JumpingCoroutine = null;
+            FallCoroutine = null;
+            Vector3 StartPosition = transform.position;
+            
+            Debug.Log(StartPosition + " " + Time.time);
+            //Controller.detectCollisions = false;
+            Controller.enabled = false;
+
+            while(elapsedTime < ClimbingDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                Vector3 PositionThisTick = new Vector3();
+                PositionThisTick.y = Mathf.Lerp(StartPosition.y, PositionOfTestBox.y, elapsedTime / ClimbingDuration);
+                PositionThisTick.x = Mathf.Lerp(StartPosition.x, PositionOfTestBox.x, elapsedTime / ClimbingDuration);
+                PositionThisTick.z = Mathf.Lerp(StartPosition.z, PositionOfTestBox.z, elapsedTime / ClimbingDuration);
+
+                transform.position = PositionThisTick;                
+                yield return null;
+            }
+
+            Controller.enabled = true;
+            ClimbCoroutine = null;
+            UpdateMovementStatus();
         }
 
         IEnumerator JumpEvent()
@@ -116,12 +227,16 @@ namespace Player
 
             float elapsedFallingDownTime = 0f;
             float JumpTime = 0f;
+
             do
             {
                 JumpTime += Time.deltaTime;
                 Vector3 DirectionThisUpdate = Direction;
-
+        
                 Vector3 MovementThisUpdate = Math.MathParabola.Parabola(Vector3.zero, DirectionThisUpdate, JumpHeight, JumpTime, JumpDuration) - MovementTillNow;
+
+                if (Controller.collisionFlags != CollisionFlags.Above && JumpDuration < 0.45f)
+                    JumpDuration = 0.5f;
 
                 if(JumpTime / JumpDuration > 0.45 && GravityWeight > 0)
                 {                    
@@ -132,6 +247,7 @@ namespace Player
                     MovementThisUpdate.y -= Mathf.LerpUnclamped(0, GravityWeight, elapsedFallingDownTime /GravityWeight);
                     MovementThisUpdate.z = Mathf.Lerp(MovementThisUpdate.z, 0, elapsedFallingDownTime / GravityWeight);
                     elapsedFallingDownTime += Time.deltaTime;
+
                 }
 
                 Controller.Move(MovementThisUpdate);
@@ -140,8 +256,9 @@ namespace Player
 
                 yield return null;
 
-            } while (!Controller.isGrounded && Controller.collisionFlags != CollisionFlags.Above);
+            } while (!Controller.isGrounded);
 
+            Controller.stepOffset = stepOffsset;
             LastDirectionalMovementInputs = new Vector3(0, 0, 0);
             JumpingCoroutine = null;
         }
@@ -231,7 +348,7 @@ namespace Player
 
         void UpdateMovementStatus()        
         {
-            if (JumpingCoroutine != null|| FallCoroutine != null || SlidingCoroutine != null) return;
+            if (JumpingCoroutine != null|| FallCoroutine != null || SlidingCoroutine != null || ClimbCoroutine != null) return;
 
             else if(Controller.isGrounded && ShouldSlide())
             {
@@ -379,15 +496,15 @@ namespace Player
             {
                 Vector3 p1 = Controller.transform.position + Controller.center + Vector3.up * -Controller.height * 0.5f;
                 Vector3 p2 = p1 + Vector3.up * Controller.height;
-                RaycastHit[] colliders = Physics.CapsuleCastAll(p1, p2, Controller.radius - 0.3f, transform.up * -1, 100);
+                RaycastHit colliders; if( Physics.CapsuleCast(p1, p2, Controller.radius - 0.3f, transform.up * -1, out colliders));
                 {
-                    foreach(var collider in colliders)
+
+                    if (colliders.collider == coll)
                     {
-                        if(collider.collider == coll)
-                        {
-                            return true;
-                        }
-                    }                    
+                        return true;
+                    }
+                    
+                    
 
                 }
 
@@ -413,6 +530,11 @@ namespace Player
 //             }
 
             return false;
+        }
+
+        void LateUpdate()
+        {
+
         }
 
         void OnControllerColliderHit (ControllerColliderHit hit)
