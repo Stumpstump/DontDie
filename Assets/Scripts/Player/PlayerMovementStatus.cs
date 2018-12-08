@@ -10,6 +10,6 @@ namespace Player
     [Serializable]
     public enum PlayerMovementStatus
     {
-        Default, Idling, Walking, BleedingOut, Jumping, Falling, Sliding
+        Default, Idling, Walking, BleedingOut, Jumping, Falling, Sliding, Climbing
     }
 }

@@ -23,6 +23,8 @@ namespace Player
         [SerializeField] private float StrafeSpeed;
         [SerializeField] private float StickToGroundForce;
         [SerializeField] private float SlideGravityAmplifier;
+        [SerializeField] private float MaxClimbHeight;
+        [SerializeField] private float MaxClimbDistance;
 
         [Tooltip("Time the player needs to fully rest on the x and z axes while jumping/falling")]
         [SerializeField] private float GravityWeight;
@@ -49,13 +51,20 @@ namespace Player
         Coroutine SlidingCoroutine;
         Coroutine JumpingCoroutine;
 
+        private Vector3 SizeOfTestBox;
+        private Vector3 PositionOfTestBox;
+
         // Start is called before the first frame update
         void Awake()
         {
-
             Controller = GetComponent<CharacterController>();
             stepOffsset = Controller.stepOffset;
             FirstPersonCamera.Initialize(transform);
+        }
+
+        void OnEnabled()
+        {
+            Controller = GetComponent<CharacterController>();
         }
 
 
@@ -88,6 +97,20 @@ namespace Player
                         break;
                     }
 
+                case PlayerMovementStatus.Climbing:
+                    {
+                        break;
+                    }
+
+                case PlayerMovementStatus.Jumping:
+                    {
+                        if(Input.GetKey(KeyCode.Space) && CanClimb())
+                        {
+                            Debug.Log("Initiate climbing");
+                        }
+                        break;
+                    }
+
             }    
         }
 
@@ -110,6 +133,52 @@ namespace Player
         {
             JumpingCoroutine = StartCoroutine(JumpEvent());
             Controller.stepOffset = 0.01f;
+        }
+
+        bool CanClimb()
+        {
+            Vector3 p1 = Controller.transform.position + Controller.center + Vector3.up * -Controller.height * 0.5f;
+            Vector3 p2 = p1 + Vector3.up * Controller.height;
+            RaycastHit hit;
+            if(Physics.CapsuleCast(p1, p2, Controller.radius, transform.forward, out hit, MaxClimbDistance))
+            {
+                if((int)Vector3.Angle(Vector3.up, hit.normal) == 90)
+                {
+                    RaycastHit HeightCast;
+                    if (Physics.Raycast(new Ray(hit.point + new Vector3(0, MaxClimbHeight, 0), Vector3.down), out HeightCast, MaxClimbHeight))
+                    {
+                        //Draw the gizmo and use it for the overlapbox
+                        PositionOfTestBox = hit.point + transform.forward * Controller.bounds.extents.z;
+                        PositionOfTestBox.y = HeightCast.point.y + Controller.bounds.extents.y;
+
+                        Collider[] colliders = Physics.OverlapBox(PositionOfTestBox, Controller.bounds.extents, transform.rotation);
+                        bool canClimb = true;
+                        foreach (var col in colliders)
+                        {
+                            if(col.gameObject != this.gameObject && col.gameObject != hit.transform.gameObject)
+                            {
+                                canClimb = false;
+                            }
+                        }
+
+                        return canClimb;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.red;
+         // Gizmos.matrix = transform.localToWorldMatrix;
+          Gizmos.DrawWireCube(PositionOfTestBox, Controller.bounds.size);
+        }
+
+        IEnumerator ClimbEvent()
+        {
+            yield return null;
         }
 
         IEnumerator JumpEvent()
@@ -141,7 +210,6 @@ namespace Player
                     MovementThisUpdate.z = Mathf.Lerp(MovementThisUpdate.z, 0, elapsedFallingDownTime / GravityWeight);
                     elapsedFallingDownTime += Time.deltaTime;
 
-                    Debug.Log(MovementTillNow + "   " + elapsedFallingDownTime);
                 }
 
                 Controller.Move(MovementThisUpdate);
@@ -390,15 +458,15 @@ namespace Player
             {
                 Vector3 p1 = Controller.transform.position + Controller.center + Vector3.up * -Controller.height * 0.5f;
                 Vector3 p2 = p1 + Vector3.up * Controller.height;
-                RaycastHit[] colliders = Physics.CapsuleCastAll(p1, p2, Controller.radius - 0.3f, transform.up * -1, 100);
+                RaycastHit colliders; if( Physics.CapsuleCast(p1, p2, Controller.radius - 0.3f, transform.up * -1, out colliders));
                 {
-                    foreach(var collider in colliders)
+
+                    if (colliders.collider == coll)
                     {
-                        if(collider.collider == coll)
-                        {
-                            return true;
-                        }
-                    }                    
+                        return true;
+                    }
+                    
+                    
 
                 }
 
@@ -426,6 +494,11 @@ namespace Player
             return false;
         }
 
+        void LateUpdate()
+        {
+
+        }
+
         void OnControllerColliderHit (ControllerColliderHit hit)
         {
 
@@ -439,26 +512,6 @@ namespace Player
                     SlideNormal = rayHit.normal;
                     coll = rayHit.collider;
            //     }
-            }
-
-            if(JumpingCoroutine != null)
-            {
-                if (Input.GetKeyDown(KeyCode.Space))
-                {
-                    var point = transform.InverseTransformPoint(hit.point);
-                    if(point.z > 90)
-                    {
-                          Debug.Log("Back");
-
-                    }
-
-                    else
-                    {
-                        Debug.Log("Front");
-                    }
-
-
-                }
             }
 
         }
