@@ -149,7 +149,7 @@ namespace Player
 
         bool CanClimb()
         {
-            Vector3 p1 = Controller.transform.position + Controller.center + Vector3.up * -Controller.height * 0.5f;
+            Vector3 p1 = Controller.transform.position + Controller.center;
             Vector3 p2 = p1 + Vector3.up * Controller.height;
             RaycastHit hit;
             if(Physics.CapsuleCast(p1, p2, Controller.radius, transform.forward, out hit, MaxClimbDistance))
@@ -167,14 +167,14 @@ namespace Player
                         bool canClimb = true;
                         foreach (var col in colliders)
                         {
-                            if(col.gameObject != this.gameObject && col.gameObject != hit.transform.gameObject)
+                            if (col.gameObject != this.gameObject && col.gameObject != hit.transform.gameObject)
                             {
                                 canClimb = false;
                             }
                         }
 
-                        
                         return canClimb;
+
                     }
                 }
             }
@@ -205,10 +205,8 @@ namespace Player
             while(elapsedTime < ClimbingDuration)
             {
                 elapsedTime += Time.deltaTime;
-                Vector3 PositionThisTick = new Vector3();
-                PositionThisTick.y = Mathf.Lerp(StartPosition.y, PositionOfTestBox.y, elapsedTime / ClimbingDuration);
-                PositionThisTick.x = Mathf.Lerp(StartPosition.x, PositionOfTestBox.x, elapsedTime / ClimbingDuration);
-                PositionThisTick.z = Mathf.Lerp(StartPosition.z, PositionOfTestBox.z, elapsedTime / ClimbingDuration);
+                Vector3 PositionThisTick = Vector3.Lerp(StartPosition, PositionOfTestBox, elapsedTime / ClimbingDuration);
+
 
                 transform.position = PositionThisTick;                
                 yield return null;
@@ -259,7 +257,7 @@ namespace Player
             } while (!Controller.isGrounded);
 
             Controller.stepOffset = stepOffsset;
-            LastDirectionalMovementInputs = new Vector3(0, 0, 0);
+            //LastDirectionalMovementInputs = new Vector3(0, 0, 0);
             JumpingCoroutine = null;
         }
 
@@ -392,6 +390,12 @@ namespace Player
             {
                 if (WindDownCouroutine == null && Speed > 0)
                 {
+                    if(MovementStatus == PlayerMovementStatus.Jumping)
+                    {
+                        MovementStatus = PlayerMovementStatus.Idling;
+                        Speed = 0f;
+                    }
+
                     WindDownCouroutine = StartCoroutine(WindDown());                
                 }
 
@@ -540,17 +544,15 @@ namespace Player
         void OnControllerColliderHit (ControllerColliderHit hit)
         {
 
-            Ray ray = new Ray(transform.position, hit.point- transform.position);
+            Ray ray = new Ray(transform.position + new Vector3(0, Controller.bounds.extents.y,0), hit.point- transform.position);
             RaycastHit rayHit;
-            if(hit.collider.Raycast(ray, out rayHit, 10f))
-            {
-            //    if(Vector3.Distance(rayHit.point, transform.position) < Vector3.Distance(LastCollisionDistance, transform.position))
-            //    {
-                    LastCollisionDistance = rayHit.point;
-                    SlideNormal = rayHit.normal;
-                    coll = rayHit.collider;
-           //     }
-            }
+
+             if(hit.collider.Raycast(ray, out rayHit, 10f))
+             {
+                 LastCollisionDistance = rayHit.point;
+                 SlideNormal = rayHit.normal;
+                 coll = rayHit.collider;
+             }
 
         }
 
