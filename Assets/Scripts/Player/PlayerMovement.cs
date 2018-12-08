@@ -12,22 +12,29 @@ namespace Player
         public EventHandler PowerUps;
 
         [SerializeField] private PlayerCamera FirstPersonCamera;
-        [SerializeField] [Tooltip("In Percent")] private float SprintingSpeedModifier;
         [SerializeField] private float JumpHeight;
-        [SerializeField] private float WindDownDuration;
-        [SerializeField] private float Gravity;
         [SerializeField] private float JumpDuration;
-        [SerializeField] private float WindUpDuration;
+
+        [Header("Speed")]
         [SerializeField] private float ForwardSpeed;
         [SerializeField] private float BackwardSpeed;
         [SerializeField] private float StrafeSpeed;
+        [SerializeField] private float WindUpDuration;
+        [SerializeField] private float WindDownDuration;
+        [SerializeField] [Tooltip("In Percent")] private float SprintingSpeedModifier;
+
+        [Header("Gravity")]
         [SerializeField] private float StickToGroundForce;
         [SerializeField] private float SlideGravityAmplifier;
-        [SerializeField] private float MaxClimbHeight;
-        [SerializeField] private float MaxClimbDistance;
-
+        [SerializeField] private float Gravity;
         [Tooltip("Time the player needs to fully rest on the x and z axes while jumping/falling")]
         [SerializeField] private float GravityWeight;
+
+        [Header("Climbing")]
+        [SerializeField] private float MaxClimbHeight;
+        [SerializeField] private float MaxClimbDistance;
+        [SerializeField] private float ClimbingDuration;
+
 
         private float SpeedFactor = 100;
         private CharacterController Controller;
@@ -50,6 +57,7 @@ namespace Player
         Coroutine FallCoroutine;
         Coroutine SlidingCoroutine;
         Coroutine JumpingCoroutine;
+        Coroutine ClimbCoroutine;
 
         private Vector3 SizeOfTestBox;
         private Vector3 PositionOfTestBox;
@@ -79,6 +87,8 @@ namespace Player
             //Update the active Power Ups
             PowerUps?.Invoke(this, new EventArgs());
 
+            Debug.Log(MovementStatus);
+
             UpdateMovementStatus();
             UpdateSpeed();
             FirstPersonCamera.Rotate();
@@ -102,11 +112,13 @@ namespace Player
                         break;
                     }
 
+                case PlayerMovementStatus.Falling:
                 case PlayerMovementStatus.Jumping:
                     {
-                        if(Input.GetKey(KeyCode.Space) && CanClimb())
+                        if(Input.GetKeyDown(KeyCode.Space) && CanClimb())
                         {
-                            Debug.Log("Initiate climbing");
+                            ClimbCoroutine = StartCoroutine(ClimbEvent());
+                            MovementStatus = PlayerMovementStatus.Climbing;
                         }
                         break;
                     }
@@ -148,7 +160,7 @@ namespace Player
                     if (Physics.Raycast(new Ray(hit.point + new Vector3(0, MaxClimbHeight, 0), Vector3.down), out HeightCast, MaxClimbHeight))
                     {
                         //Draw the gizmo and use it for the overlapbox
-                        PositionOfTestBox = hit.point + transform.forward * Controller.bounds.extents.z;
+                        PositionOfTestBox = hit.point;// + transform.forward * Controller.bounds.extents.z / 2;
                         PositionOfTestBox.y = HeightCast.point.y + Controller.bounds.extents.y;
 
                         Collider[] colliders = Physics.OverlapBox(PositionOfTestBox, Controller.bounds.extents, transform.rotation);
@@ -161,6 +173,7 @@ namespace Player
                             }
                         }
 
+                        
                         return canClimb;
                     }
                 }
@@ -171,14 +184,39 @@ namespace Player
 
         void OnDrawGizmosSelected()
         {
-            Gizmos.color = Color.red;
-         // Gizmos.matrix = transform.localToWorldMatrix;
-          Gizmos.DrawWireCube(PositionOfTestBox, Controller.bounds.size);
+//             Gizmos.color = Color.red;
+//          // Gizmos.matrix = transform.localToWorldMatrix;
+//           Gizmos.DrawWireCube(PositionOfTestBox, Controller.bounds.size);
         }
+
+
 
         IEnumerator ClimbEvent()
         {
-            yield return null;
+            float elapsedTime = 0f;
+            JumpingCoroutine = null;
+            FallCoroutine = null;
+            Vector3 StartPosition = transform.position;
+            
+            Debug.Log(StartPosition + " " + Time.time);
+            //Controller.detectCollisions = false;
+            Controller.enabled = false;
+
+            while(elapsedTime < ClimbingDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                Vector3 PositionThisTick = new Vector3();
+                PositionThisTick.y = Mathf.Lerp(StartPosition.y, PositionOfTestBox.y, elapsedTime / ClimbingDuration);
+                PositionThisTick.x = Mathf.Lerp(StartPosition.x, PositionOfTestBox.x, elapsedTime / ClimbingDuration);
+                PositionThisTick.z = Mathf.Lerp(StartPosition.z, PositionOfTestBox.z, elapsedTime / ClimbingDuration);
+
+                transform.position = PositionThisTick;                
+                yield return null;
+            }
+
+            Controller.enabled = true;
+            ClimbCoroutine = null;
+            UpdateMovementStatus();
         }
 
         IEnumerator JumpEvent()
@@ -310,7 +348,7 @@ namespace Player
 
         void UpdateMovementStatus()        
         {
-            if (JumpingCoroutine != null|| FallCoroutine != null || SlidingCoroutine != null) return;
+            if (JumpingCoroutine != null|| FallCoroutine != null || SlidingCoroutine != null || ClimbCoroutine != null) return;
 
             else if(Controller.isGrounded && ShouldSlide())
             {

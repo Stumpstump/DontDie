@@ -224,4 +224,8 @@ MonoBehaviour:
   BackwardSpeed: 3
   StrafeSpeed: 4
   StickToGroundForce: -9
+  SlideGravityAmplifier: 0
+  MaxClimbHeight: 0.5
+  MaxClimbDistance: 0.5
+  ClimbingDuration: 1
   GravityWeight: 2
