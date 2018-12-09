@@ -11,6 +11,8 @@ namespace Player
     {
         public EventHandler PowerUps;
 
+        [SerializeField] private StandardGunScript CurrentGun;
+         
         [SerializeField] private PlayerCamera FirstPersonCamera;
         [SerializeField] private float JumpHeight;
         [SerializeField] private float JumpDuration;
@@ -87,11 +89,18 @@ namespace Player
             //Update the active Power Ups
             PowerUps?.Invoke(this, new EventArgs());
 
-            Debug.Log(MovementStatus);
+          //  Debug.Log(MovementStatus);
 
             UpdateMovementStatus();
             UpdateSpeed();
             FirstPersonCamera.Rotate();
+
+
+
+            if (Input.GetAxisRaw("Fire1") > 0)
+                CurrentGun.Fire(FirstPersonCamera);
+
+
 
             switch (MovementStatus)
             {
