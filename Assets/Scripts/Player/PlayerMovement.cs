@@ -11,8 +11,7 @@ namespace Player
     {
         public EventHandler PowerUps;
 
-        [SerializeField] private StandardGunScript CurrentGun;
-         
+            
         [SerializeField] private PlayerCamera FirstPersonCamera;
         [SerializeField] private float JumpHeight;
         [SerializeField] private float JumpDuration;
@@ -39,6 +38,7 @@ namespace Player
 
 
         private float SpeedFactor = 100;
+        private StandardGunScript CurrentGun;
         private CharacterController Controller;
         private PlayerMovementStatus MovementStatus;
         private Vector3 DirectionalMovementInputs = new Vector3();
@@ -48,11 +48,16 @@ namespace Player
         private float Speed = 0;
         private float ElapsedSpeedPowerUpTime;
         private float SlideAngle;
+        private float CurrentDirection;
         private Vector3 SlideNormal;
         private float stepOffsset;
 
         private Vector3 LastCollisionDistance = new Vector3();
         private Collider coll = new Collider();
+
+        private Animator animator;
+
+        float AnimationSpeed;
 
         Coroutine WindUpCouroutine;
         Coroutine WindDownCouroutine;
@@ -70,6 +75,7 @@ namespace Player
             Controller = GetComponent<CharacterController>();
             stepOffsset = Controller.stepOffset;
             FirstPersonCamera.Initialize(transform);
+            animator = GetComponent<Animator>();
         }
 
         void OnEnabled()
@@ -95,12 +101,9 @@ namespace Player
             UpdateSpeed();
             FirstPersonCamera.Rotate();
 
-
-
-            if (Input.GetAxisRaw("Fire1") > 0)
+            CurrentGun = GetComponentInChildren<InventoryManager>().GetActiveWeapon();
+            if (Input.GetAxisRaw("Fire1") > 0 && CurrentGun != null)
                 CurrentGun.Fire(FirstPersonCamera);
-
-
 
             switch (MovementStatus)
             {
@@ -124,15 +127,22 @@ namespace Player
                 case PlayerMovementStatus.Falling:
                 case PlayerMovementStatus.Jumping:
                     {
-                        if(Input.GetKeyDown(KeyCode.Space) && CanClimb())
+                        if (Input.GetKeyDown(KeyCode.Space) && CanClimb())
                         {
+                            if (animator != null)
+                            {
+                                animator.SetTrigger("Climb");
+                                animator.ResetTrigger("Jump");
+                                animator.ResetTrigger("Fall");
+                            }
                             ClimbCoroutine = StartCoroutine(ClimbEvent());
                             MovementStatus = PlayerMovementStatus.Climbing;
                         }
                         break;
                     }
+            }
 
-            }    
+            UpdateAnimationController();
         }
 
         void Move()
@@ -152,6 +162,11 @@ namespace Player
 
         void Jump()
         {
+            if (animator != null)
+            {
+                animator.SetTrigger("Jump");                
+            }
+
             JumpingCoroutine = StartCoroutine(JumpEvent());
             Controller.stepOffset = 0.01f;
         }
@@ -189,6 +204,16 @@ namespace Player
             }
 
             return false;
+        }
+
+        void UpdateAnimationController()
+        {
+            if (animator == null) return;
+
+            animator.SetFloat("Speed", Speed);
+            animator.SetFloat("Direction", CurrentDirection);
+            animator.SetBool("isGrounder", Controller.isGrounded);
+            
         }
 
         void OnDrawGizmosSelected()
@@ -272,6 +297,9 @@ namespace Player
 
         IEnumerator FallEvent()
         {
+            if (animator != null)
+                animator.SetTrigger("Fall");
+
             Vector3 Direction = transform.TransformDirection(LastDirectionalMovementInputs) * Speed;
             Vector3 MovementTillNow = new Vector3();
 
@@ -327,27 +355,46 @@ namespace Player
 
         float GetWalkingSpeed()
         {
-            if(isMovementInputZero())
+            if (isMovementInputZero())
             {
                 if (DirectionalMovementInputs.z > 0)
+                {
+                    CurrentDirection = 0;
                     return ForwardSpeed;
+                }
 
                 else if (DirectionalMovementInputs.z < 0)
+                {
+                    CurrentDirection = 2;
                     return BackwardSpeed;
+                }
 
-                else return StrafeSpeed;
+                else
+                {
+                    CurrentDirection = DirectionalMovementInputs.x > 0 ? 1 : -1;
+                    return StrafeSpeed;
+                }
             }
 
             else
             {
                 if (LastDirectionalMovementInputs.z > 0)
+                {
+                    CurrentDirection = 0;
                     return ForwardSpeed;
+                }
 
                 else if (LastDirectionalMovementInputs.z < 0)
+                {
+                    CurrentDirection = 2;
                     return BackwardSpeed;
+                }
 
-                else if (LastDirectionalMovementInputs.x > 0 || LastDirectionalMovementInputs.x < 0)
+                else if (LastDirectionalMovementInputs.x != 0)
+                {
+                    CurrentDirection = LastDirectionalMovementInputs.x > 0 ? 1 : -1;
                     return StrafeSpeed;
+                }
 
                 else return 0;
             }
