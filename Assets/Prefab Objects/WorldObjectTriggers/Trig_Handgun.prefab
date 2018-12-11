@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 2092041510134472081}
   - component: {fileID: 6941008086117181351}
   - component: {fileID: 3706431152964967262}
-  - component: {fileID: 7554960191342780426}
   - component: {fileID: 6172245348202619602}
   m_Layer: 0
   m_Name: Trig_Handgun
@@ -82,23 +81,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!111 &7554960191342780426
-Animation:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3121897737780014978}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Animation: {fileID: -3704289112126983070, guid: 8d9660edbaa9273488c845c704bfb01e,
-    type: 3}
-  m_Animations:
-  - {fileID: -3704289112126983070, guid: 8d9660edbaa9273488c845c704bfb01e, type: 3}
-  m_WrapMode: 0
-  m_PlayAutomatically: 1
-  m_AnimatePhysics: 0
-  m_CullingType: 0
 --- !u!136 &6172245348202619602
 CapsuleCollider:
   m_ObjectHideFlags: 0
