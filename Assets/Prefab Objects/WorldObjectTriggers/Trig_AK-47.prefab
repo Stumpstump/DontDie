@@ -165,7 +165,6 @@ GameObject:
   - component: {fileID: 6274571272709043454}
   - component: {fileID: 3046904960139546312}
   - component: {fileID: 8751706288787141169}
-  - component: {fileID: 2504900498728585573}
   - component: {fileID: 7212942529719828363}
   m_Layer: 0
   m_Name: Trig_AK-47
@@ -235,23 +234,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!111 &2504900498728585573
-Animation:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7010020551295469293}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Animation: {fileID: -3704289112126983070, guid: 895d63c2571c89d428ca3bc34ca53ca4,
-    type: 3}
-  m_Animations:
-  - {fileID: -3704289112126983070, guid: 895d63c2571c89d428ca3bc34ca53ca4, type: 3}
-  m_WrapMode: 0
-  m_PlayAutomatically: 1
-  m_AnimatePhysics: 0
-  m_CullingType: 0
 --- !u!136 &7212942529719828363
 CapsuleCollider:
   m_ObjectHideFlags: 0
