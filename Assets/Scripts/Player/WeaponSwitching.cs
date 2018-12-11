@@ -42,20 +42,23 @@ public class WeaponSwitching : MonoBehaviour
                 selectedWeapon += AmountToChange > 0f ? 1 : -1;
                 
             }
-
-            Debug.Log(selectedWeapon);
         }
 
         else
         {
-            if (Input.GetKey(KeyCode.Alpha1))
-                selectedWeapon = 0;
+            int currentKeyCode = 49;
+            int currentLoop = 0;
 
-            else if (Input.GetKey(KeyCode.Alpha2) && transform.childCount > 1)
-                selectedWeapon = 1;
+            foreach(var weapon in transform)
+            {
+                if(Input.GetKey((KeyCode)currentKeyCode))
+                {
+                    selectedWeapon = currentLoop;
+                }
 
-            else if (Input.GetKey(KeyCode.Alpha3) && transform.childCount > 2)
-                selectedWeapon = 2;
+                ++currentLoop;
+                ++currentKeyCode;
+            }          
         }
 
 
@@ -68,7 +71,7 @@ public class WeaponSwitching : MonoBehaviour
         return transform.GetChild(selectedWeapon).gameObject;
     }
 
-    private void SelectWeapon()
+    public void SelectWeapon()
     {
         for(int i = 0; i < transform.childCount; i++)
         {
