@@ -101,7 +101,7 @@ namespace Player
             UpdateSpeed();
             FirstPersonCamera.Rotate();
 
-            CurrentGun = GetComponentInChildren<InventoryManager>().GetActiveWeapon();
+            CurrentGun = GetComponentInChildren<WeaponSwitching>().GetActiveWeapon().GetComponent<StandardGunScript>();
             if (Input.GetAxisRaw("Fire1") > 0 && CurrentGun != null)
                 CurrentGun.Fire(FirstPersonCamera);
 
