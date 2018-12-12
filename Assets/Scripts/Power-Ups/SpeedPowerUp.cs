@@ -9,7 +9,7 @@ public class SpeedPowerUp : MonoBehaviour
     public float Duration;
 
     private float elapsedTime;
-    private Player.PlayerMovement player = null;
+    private Player.PlayerController player = null;
     
     void OnPickedUp()
     {
@@ -30,9 +30,9 @@ public class SpeedPowerUp : MonoBehaviour
 
     void OnTriggerEnter(Collider collider)
     {
-        if(collider.GetComponent<Player.PlayerMovement>() != null)
+        if(collider.GetComponent<Player.PlayerController>() != null)
         {
-            player = collider.GetComponent<Player.PlayerMovement>();
+            player = collider.GetComponent<Player.PlayerController>();
             player.PowerUps += this.UpdatePickUp;
             player.ChangeSpeedFactor(SpeedValue);
 

@@ -7,14 +7,11 @@ using DDS;
 
 namespace Player
 {
-    public class PlayerMovement : MonoBehaviour
+    public class PlayerController : MonoBehaviour
     {
         public EventHandler PowerUps;
-
-            
+       
         [SerializeField] private PlayerCamera FirstPersonCamera;
-        [SerializeField] private float JumpHeight;
-        [SerializeField] private float JumpDuration;
 
         [Header("Speed")]
         [SerializeField] private float ForwardSpeed;
@@ -28,14 +25,17 @@ namespace Player
         [SerializeField] private float StickToGroundForce;
         [SerializeField] private float SlideGravityAmplifier;
         [SerializeField] private float Gravity;
-        [Tooltip("Time the player needs to fully rest on the x and z axes while jumping/falling")]
-        [SerializeField] private float GravityWeight;
 
         [Header("Climbing")]
         [SerializeField] private float MaxClimbHeight;
         [SerializeField] private float MaxClimbDistance;
         [SerializeField] private float ClimbingDuration;
 
+        [Header("Jumping")]
+        [SerializeField] private float JumpHeight;
+        [SerializeField] private float JumpDuration;
+        [Tooltip("Time the player needs to fully rest on the x and z axes while jumping/falling")]
+        [SerializeField] private float GravityWeight;
 
         private float SpeedFactor = 100;
         private StandardGunScript CurrentGun;
