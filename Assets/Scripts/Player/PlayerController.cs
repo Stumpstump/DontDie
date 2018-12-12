@@ -95,8 +95,6 @@ namespace Player
             //Update the active Power Ups
             PowerUps?.Invoke(this, new EventArgs());
 
-          //  Debug.Log(MovementStatus);
-
             UpdateMovementStatus();
             UpdateSpeed();
             FirstPersonCamera.Rotate();
@@ -232,7 +230,6 @@ namespace Player
             FallCoroutine = null;
             Vector3 StartPosition = transform.position;
             
-            Debug.Log(StartPosition + " " + Time.time);
             //Controller.detectCollisions = false;
             Controller.enabled = false;
 

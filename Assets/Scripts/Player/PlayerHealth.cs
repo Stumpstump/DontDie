@@ -1,26 +1,48 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Health : MonoBehaviour
 {
     [SerializeField] private int MaxHealth;
-    [SerializeField] private int CurrentHealth;
+    [SerializeField] GameObject DamageText;
+    public int CurrentHealth
+    {
+        get;
+
+        private set;
+    }
 
     [SerializeField] private int MaxBarrier;
-    [SerializeField] private int CurrentBarrier;
+    public int CurrentBarrier
+    {
+        get;
+
+        private set;
+    }
 
     void Awake()
     {
-        CurrentHealth = MaxHealth;
-        CurrentBarrier = MaxBarrier;
+        Reset();
+        if(GetComponent<Targetable>())
+            GetComponent<Targetable>().ReceiveDamageEvent += ReceiveDamage;
     }
 
-    public void DealDamage(int DamageAmount)
+    public void ReceiveDamage(object sender, DamageEventArgs Damage)
     {
+        if(DamageText != null)
+        {
+            if(this.GetComponentInChildren<Canvas>())
+            {
+                GameObject newDamageText = Instantiate(DamageText, this.GetComponentInChildren<Canvas>().transform);
+                newDamageText.GetComponent<Text>().text = Damage.Damage.ToString();
+            }
+        }
+
+        int DamageAmount = Damage.Damage;
         if(DamageAmount > CurrentBarrier)
         {
-            Debug.Log("DamageAmount");
             DamageAmount -= CurrentBarrier;
 
             CurrentBarrier = 0;
@@ -32,7 +54,6 @@ public class Health : MonoBehaviour
         {
             CurrentBarrier -= DamageAmount;
         }
-
     }
 
     public void RegenHealth(int RegenAmount)
@@ -41,6 +62,13 @@ public class Health : MonoBehaviour
             CurrentHealth = MaxHealth;
         else
             CurrentHealth += RegenAmount;
+    }
+
+    //Resets the health and barrier to the Max values 
+    public void Reset()
+    {
+        CurrentHealth = MaxHealth;
+        CurrentBarrier = MaxBarrier;
     }
 
     public void RegenBarrier(int RegenAmount)

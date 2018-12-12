@@ -5,7 +5,7 @@ using UnityEngine;
 public class StandardGunScript : MonoBehaviour
 {
     [Header("Stats")]
-    [SerializeField] private float damage;
+    [SerializeField] private int damage;
     [Tooltip("Range: 100 -> dynamicDamagaeRange")]
     [SerializeField] private float dynamicDamageRange;
     [SerializeField] private float maxShootingRange;
@@ -77,7 +77,8 @@ public class StandardGunScript : MonoBehaviour
 
                 if(info.transform.GetComponent<Targetable>() != null)
                 {
-                    info.transform.GetComponent<Targetable>().ReceiveDamagea(this, new DamageEventArgs(Random.Range(damage, damage * dynamicDamageRange / 100)));
+                    //Add dynamic damagage here
+;                    info.transform.GetComponent<Targetable>().ReceiveDamage(this, new DamageEventArgs(damage));
                 }
             }
 
