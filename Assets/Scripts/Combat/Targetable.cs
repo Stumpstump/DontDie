@@ -5,20 +5,20 @@ using System;
 
 public class DamageEventArgs : EventArgs
 {
-    public DamageEventArgs(float damage)
+    public DamageEventArgs(int damage)
     {
         Damage = damage;
     }
 
-    public float Damage;
+    public int Damage;
 }
 
 public class Targetable : MonoBehaviour
 {
-    event EventHandler <DamageEventArgs> ReceiveDamageEvent;
+    public event EventHandler <DamageEventArgs> ReceiveDamageEvent;
 
-    public void ReceiveDamagea(object sender, DamageEventArgs a)
+    public void ReceiveDamage(object sender, DamageEventArgs amount)
     {
-        Debug.Log(a.Damage);
+        ReceiveDamageEvent(sender, amount);
     }
 }

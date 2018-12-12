@@ -18,7 +18,7 @@ public class SpeedField : MonoBehaviour
     //We use this class of Player Data so that the concept of this field is working if we ever come to multiplayer
     class PlayerData
     {
-        public PlayerData(Player.PlayerMovement player)
+        public PlayerData(Player.PlayerController player)
         {
             Player = player;
             elapsedTimeSinceExit = 0f;
@@ -61,7 +61,7 @@ public class SpeedField : MonoBehaviour
             }
         }
 
-        public Player.PlayerMovement Player;
+        public Player.PlayerController Player;
         public float elapsedTimeSinceExit;
 
         public bool isExitTimeActive;
@@ -80,20 +80,20 @@ public class SpeedField : MonoBehaviour
     void OnTriggerEnter(Collider collider)
     {
         //Check if the collider is a player
-        if(collider.GetComponent<Player.PlayerMovement>() != null)
+        if(collider.GetComponent<Player.PlayerController>() != null)
         {
             //Check if the Player is already in the list
             //If he is in the list set his elapsed time since exit to zero and return, otherwise add him to the list
             for (int i = 0; i < Players.Count; i++)
             {
-                if (Players[i].Player == collider.GetComponent<Player.PlayerMovement>())
+                if (Players[i].Player == collider.GetComponent<Player.PlayerController>())
                 {
                     Players[i].PlayerEntered(SpeedValue);
                     return;
                 }
             }
 
-            PlayerData newPlayer = new PlayerData(collider.GetComponent<Player.PlayerMovement>());
+            PlayerData newPlayer = new PlayerData(collider.GetComponent<Player.PlayerController>());
             newPlayer.PlayerEntered(SpeedValue);
             Players.Add(newPlayer);
         }
@@ -101,11 +101,11 @@ public class SpeedField : MonoBehaviour
 
     void OnTriggerExit(Collider collider)
     {
-        if(collider.GetComponent<Player.PlayerMovement>() != null)
+        if(collider.GetComponent<Player.PlayerController>() != null)
         {
             for(int i = 0; i < Players.Count; i++)
             { 
-                if(Players[i].Player == collider.GetComponent<Player.PlayerMovement>())
+                if(Players[i].Player == collider.GetComponent<Player.PlayerController>())
                 {
                     Players[i].PlayerLeft(SpeedValue, ExtendSpeedDuration);
                     return;

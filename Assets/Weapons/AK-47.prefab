@@ -271,7 +271,7 @@ MonoBehaviour:
   dynamicDamageRange: 100
   maxShootingRange: 100
   roundsPerSecond: 8
-  spreadRadius: 2
+  spreadRadius: 3
   magazineSize: 30
   reloadTime: 1.5
   muzzleFlash: {fileID: 0}
