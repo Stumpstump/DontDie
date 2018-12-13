@@ -1,50 +1,17 @@
 fileFormatVersion: 2
-guid: 895d63c2571c89d428ca3bc34ca53ca4
-labels:
-- army
-- gun
-- military
-- rifle
-- weapon
-- aK-47
-- bullets
+guid: 3975a1ff812d56c4787b9b919a6883e9
 ModelImporter:
   serializedVersion: 24
   internalIDToNameTable:
   - first:
-      43: 4300000
-    second: AK_47
-  - first:
-      43: 4300002
-    second: AK_47_Magazine
-  - first:
-      43: 4300004
-    second: Ak_47_Shell
-  - first:
-      74: 7400000
-    second: Take 001 //// AK-47
-  - first:
-      74: 7400002
-    second: Shoot //// AK-47
-  - first:
-      74: -3704289112126983070
-    second: Shoot
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: AK_47_Material
-    second: {fileID: 2100000, guid: de1f287eaa7164e47949f163c819203c, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Rocket_Shell_Shell
-    second: {fileID: 2100000, guid: 2cdd7a5151d5bb4448b210f4a099236b, type: 2}
+      74: 1827226128182048838
+    second: Take 001
+  externalObjects: {}
   materials:
     importMaterials: 1
     materialName: 0
     materialSearch: 1
-    materialLocation: 0
+    materialLocation: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
@@ -68,16 +35,16 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Shoot
-      takeName: 
-      internalID: -3704289112126983070
+      name: Take 001
+      takeName: Take 001
+      internalID: 1827226128182048838
       firstFrame: 1
       lastFrame: 6
-      wrapMode: 2
+      wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
-      loop: 1
+      loop: 0
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
@@ -103,10 +70,10 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
-    importVisibility: 0
+    importVisibility: 1
     importBlendShapes: 1
-    importCameras: 0
-    importLights: 0
+    importCameras: 1
+    importLights: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
@@ -117,20 +84,20 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     meshOptimizationFlags: -1
-    indexFormat: 1
+    indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
-    useFileScale: 0
+    useFileScale: 1
     previousCalculatedGlobalScale: 1
-    hasPreviousCalculatedGlobalScale: 0
+    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
-    tangentImportMode: 4
-    normalCalculationMode: 0
-    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 1
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
   importAnimation: 1
@@ -151,7 +118,7 @@ ModelImporter:
     hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  animationType: 1
+  animationType: 2
   humanoidOversampling: 1
   additionalBone: 0
   userData: 
