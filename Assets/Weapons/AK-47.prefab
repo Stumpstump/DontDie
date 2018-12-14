@@ -267,12 +267,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae88cee9cafda2e438c3cec89a6041d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  showDynamicDamage: 1
   damage: 10
-  dynamicDamageRange: 100
+  dynamicDamage: 20
   maxShootingRange: 100
-  roundsPerSecond: 100000
   spreadRadius: 1
-  magazineSize: 2147483647
+  roundsPerSecond: 8
+  magazineSize: 30
   reloadTime: 1.5
   muzzleFlash: {fileID: 0}
   impact: {fileID: 5007451305983023065, guid: 0234b41824d1c6445a363abd63c5f9e8, type: 3}

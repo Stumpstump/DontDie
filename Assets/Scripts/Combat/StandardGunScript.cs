@@ -5,12 +5,13 @@ using UnityEngine;
 public class StandardGunScript : MonoBehaviour
 {
     [Header("Stats")]
-    [SerializeField] private int damage;
-    [Tooltip("Range: 100 -> dynamicDamagaeRange")]
-    [SerializeField] private float dynamicDamageRange;
+    [SerializeField] private bool showDynamicDamage;
+    [SerializeField] private int damage;    
+    [SerializeField] private int dynamicDamage;
+
     [SerializeField] private float maxShootingRange;
-    [Tooltip("Spread radius in meters after a distance of 5 meters")]
     [SerializeField] private float spreadRadius;
+
     [SerializeField] private float roundsPerSecond;
     [SerializeField] private int magazineSize;
     [SerializeField] private float reloadTime; 
@@ -75,7 +76,8 @@ public class StandardGunScript : MonoBehaviour
                 if(info.transform.GetComponent<Targetable>() != null)
                 {
                     //Add dynamic damagage here
-;                    info.transform.GetComponent<Targetable>().ReceiveDamage(this, new DamageEventArgs(damage));
+                    int Damage = showDynamicDamage == false ? damage : Random.Range(damage, dynamicDamage);
+;                   info.transform.GetComponent<Targetable>().ReceiveDamage(this, new DamageEventArgs(Damage));
                 }
             }
 
