@@ -9,8 +9,9 @@ public class StandardGunScript : MonoBehaviour
     [Tooltip("Range: 100 -> dynamicDamagaeRange")]
     [SerializeField] private float dynamicDamageRange;
     [SerializeField] private float maxShootingRange;
-    [SerializeField] private float roundsPerSecond;
+    [Tooltip("Spread radius in meters after a distance of 5 meters")]
     [SerializeField] private float spreadRadius;
+    [SerializeField] private float roundsPerSecond;
     [SerializeField] private int magazineSize;
     [SerializeField] private float reloadTime; 
 
@@ -21,6 +22,7 @@ public class StandardGunScript : MonoBehaviour
     [Header("Sounds")]
     [SerializeField] private AudioSource ReloadSound;
     [SerializeField] private AudioSource ShootingSound;
+
 
     private float currentShootingInterval = 0f;
     private float CurrentMagazineSize;
@@ -59,18 +61,13 @@ public class StandardGunScript : MonoBehaviour
                 muzzleFlash.Play();
 
 
-            float theta = Random.Range(0f, 1f) * 2 * Mathf.PI;
-            float r = spreadRadius * Mathf.Sqrt(Random.Range(0f, 1f));
 
-            Vector3 DesiredDestination = camera.Reticle.transform.position;
-
-            DesiredDestination.x = DesiredDestination.x + r * Mathf.Cos(theta);
-            DesiredDestination.y = DesiredDestination.y + r * Mathf.Sin(theta);
-
-            Ray ray = camera.GetCamera().ScreenPointToRay(DesiredDestination);
-
-            RaycastHit info;
-            if(Physics.Raycast(ray, out info, maxShootingRange))
+            Vector3 DesiredDestination = camera.Reticle.transform.position;           
+            Ray ray = camera.GetCamera().ScreenPointToRay(camera.Reticle.transform.position);
+            ray.direction += camera.GetCamera().transform.TransformDirection(Random.insideUnitCircle * spreadRadius / 10);
+            
+            RaycastHit info;            
+            if (Physics.Raycast(ray, out info, maxShootingRange))
             {              
                 if(impact != null)
                     GameObject.Instantiate(impact, info.point, Quaternion.LookRotation(transform.forward * -1));
