@@ -210,7 +210,7 @@ namespace Player
 
             animator.SetFloat("Speed", Speed);
             animator.SetFloat("Direction", CurrentDirection);
-            animator.SetBool("isGrounder", Controller.isGrounded);
+            animator.SetBool("isGrounded", Controller.isGrounded);
             
         }
 
