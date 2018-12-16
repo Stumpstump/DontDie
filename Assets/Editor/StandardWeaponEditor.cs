@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEditor;
 
 [CustomEditor(typeof(StandardGunScript))]
-public class StandardWeaponGunEditor : Editor
+public class StandardWeaponEditor : Editor
 {
     SerializedProperty UseDynamicDamage;
     SerializedProperty BaseDamage;
