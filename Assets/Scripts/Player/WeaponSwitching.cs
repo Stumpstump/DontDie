@@ -4,13 +4,16 @@ using UnityEngine;
 
 public class WeaponSwitching : MonoBehaviour
 {
-    [SerializeField]  float mouseWheelCoolDown;
+    [SerializeField] private float mouseWheelCoolDown;
+    [SerializeField] private GameObject defaultWeapon;
 
     private float mouseWheelElapsedTime;
     private int selectedWeapon;
+    private GameObject Fists;
 
     private void Awake()
     {
+        Fists = Instantiate(defaultWeapon, transform);
         SelectWeapon();
     }
 
@@ -77,5 +80,17 @@ public class WeaponSwitching : MonoBehaviour
         {
             transform.GetChild(i).gameObject.SetActive(i == selectedWeapon);
         }
+    }
+
+    public void ResetWeapons()
+    {
+        for(int i = 0; i < transform.childCount; i++)
+        {
+            if (transform.GetChild(i).gameObject != Fists.gameObject)
+                GameObject.Destroy(transform.GetChild(i).gameObject);            
+        }
+
+        selectedWeapon = 0;
+        SelectWeapon();
     }
 }
