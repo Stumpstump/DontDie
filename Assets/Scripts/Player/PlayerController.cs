@@ -288,6 +288,7 @@ namespace Player
             MovementStatus = PlayerMovementStatus.Default;
             playerHealth.Reset();
             inventory.Reset();
+            GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().RequestPlayerRespawn(gameObject);
             //To do: Drop all weapons from the player (fist exluded) 
             
         }        

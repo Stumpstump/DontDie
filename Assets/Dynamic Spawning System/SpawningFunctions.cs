@@ -73,7 +73,7 @@ namespace DDS
             if (SpawnType == SpawningStyles.Continuous)
                 SpawnAmount = 1;
 
-            if (!PositioningComponent.GetPositions(Objects[IndexOfObject], SpawnAmount, FrustumCamera, out Positions))
+            if (!PositioningComponent.GetPositions(Objects[IndexOfObject], SpawnAmount, FrustumCamera, false, out Positions))
                 return null;
 
             GameObject[] ObjectsToReturn = new GameObject[Positions.Length];

@@ -279,7 +279,7 @@ namespace DDS
             }
             catch (System.Exception e)
             {
-                Debug.Log(e.StackTrace + "" + "Position to set was out of bounds!");                
+                Debug.LogError(e.StackTrace + "" + "Position to set was out of bounds!");                
             }
         }
 
@@ -298,7 +298,7 @@ namespace DDS
                 }                
             }
 
-            Debug.Log("Position with the name " + PositionName + " couldn't be found!");
+            Debug.LogError("Position with the name " + PositionName + " couldn't be found!");
             return false;
         }
     }
