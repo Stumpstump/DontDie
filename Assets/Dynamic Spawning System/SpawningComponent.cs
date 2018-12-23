@@ -11,7 +11,7 @@ namespace DDS
         [SerializeField]
         public SpawnAbleObject[] Objects_to_Spawn;
 
-        virtual public bool GetPositions(SpawnAbleObject Object, int DesiredAmountOfPositions, Camera FrustumCamera, out Vector3[] ReturnedPositions)
+        virtual public bool GetPositions(SpawnAbleObject Object, int DesiredAmountOfPositions, Camera FrustumCamera, bool useCharacterController, out Vector3[] ReturnedPositions)
         {
             ReturnedPositions = new Vector3[0];
             return true;

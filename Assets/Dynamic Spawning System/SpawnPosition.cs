@@ -8,7 +8,7 @@ namespace DDS
 {
     public class SpawnPosition : SpawningComponent
     {
-
+        
         [SerializeField]
         [Tooltip("Assign all Objects the ground detection should ignore to this mask")]
         public LayerMask IgnoredSpawnObject;
@@ -26,7 +26,7 @@ namespace DDS
         /// Set FrustumCamera to null if you don't want the Frustum Check.
         /// Returns false if it couldn't allocate the desired amount of positions.
         /// </summary>
-        public override bool GetPositions(SpawnAbleObject Object, int AmountOfPosition, Camera FrustumCamera, out Vector3[] ReturnedPosition)
+        public override bool GetPositions(SpawnAbleObject Object, int AmountOfPosition, Camera FrustumCamera, bool useCharaterController, out Vector3[] ReturnedPosition)
         {
             PersonalLogicScript PersonalScript = Object.ObjectToSpawn.GetComponent<PersonalLogicScript>();
                         
@@ -43,9 +43,22 @@ namespace DDS
             ReturnedPosition[0].x = transform.position.x;
             ReturnedPosition[0].z = transform.position.z;
 
-            Bounds ObjectBounds = Object.ObjectToSpawn.GetComponent<Renderer>().bounds;
+            Bounds ObjectBounds = new Bounds();
 
-            Vector3 CenterOffset = new Vector3();
+            Vector3 CenterOffset = new Vector3(); ;
+
+            if(!useCharaterController)
+            {
+                ObjectBounds = Object.ObjectToSpawn.GetComponent<Renderer>().bounds;
+                CenterOffset = ObjectBounds.center - Object.ObjectToSpawn.transform.position;
+            }
+
+            else
+            {
+                ObjectBounds = Object.ObjectToSpawn.GetComponent<CharacterController>().bounds;
+                CenterOffset = ObjectBounds.center - Object.ObjectToSpawn.transform.position;
+            }
+
 
             if (Object.ApplyLogicToChilds)
             {
@@ -55,28 +68,35 @@ namespace DDS
                 }
             }
 
-            CenterOffset = ObjectBounds.center - Object.ObjectToSpawn.transform.position;
 
             RaycastHit Hit = new RaycastHit();
 
-            if (!Physics.BoxCast(new Vector3(transform.position.x, transform.position.y + Object.ObjectToSpawn.GetComponent<Renderer>().bounds.size.y / 2 + GroundDetectionHeight, transform.position.z) + CenterOffset, ObjectBounds.extents, Vector3.down, out Hit, Object.ObjectToSpawn.transform.rotation, GroundDetectionHeight + Object.ObjectToSpawn.GetComponent<Renderer>().bounds.size.y / 2, ~IgnoredSpawnObject))
+            Vector3 BoxCastCenter = new Vector3(transform.position.x, transform.position.y + ObjectBounds.extents.y + GroundDetectionHeight) + CenterOffset;
+
+            Debug.DrawRay(BoxCastCenter + ObjectBounds.extents, Vector3.down);
+
+            if(!Physics.BoxCast(BoxCastCenter, ObjectBounds.extents, Vector3.down, out Hit, Object.ObjectToSpawn.transform.rotation, GroundDetectionHeight + ObjectBounds.size.y, ~IgnoredSpawnObject))
             {
                 Debug.Log("<color=red> No ground detected, please readjust your Spawn Point height </color>");
                 return false;
             }
 
+//             if (!Physics.BoxCast(new Vector3(transform.position.x, transform.position.y + ObjectBounds.extents.y + GroundDetectionHeight, transform.position.z) + CenterOffset, ObjectBounds.extents, Vector3.down, out Hit, Object.ObjectToSpawn.transform.rotation, GroundDetectionHeight + ObjectBounds.extents.y, ~IgnoredSpawnObject))
+//             {
+// 
+//             }
+
             float Distance = 0;
 
-            if (Hit.point.y + ObjectBounds.size.y / 2 > transform.position.y + ObjectBounds.size.y / 2)
+            if (Hit.point.y < transform.position.y )
             {
-                Distance = Hit.point.y + ObjectBounds.size.y / 2 - transform.position.y + ObjectBounds.size.y / 2;
+                Distance = Hit.point.y  - transform.position.y;
 
                 if (Distance < 0)
                     Distance *= -1;
             }
 
-            ReturnedPosition[0].y = Hit.point.y + Object.ObjectToSpawn.GetComponent<Renderer>().bounds.size.y / 2;
-            
+            ReturnedPosition[0].y = Hit.point.y;
 
             if (!UsePersonalLogic)
             {

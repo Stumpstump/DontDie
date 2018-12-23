@@ -4,13 +4,18 @@ using UnityEngine;
 using System;
 using System.Linq;
 using DDS;
+using Combat;
 
 namespace Player
 {
+    [RequireComponent(typeof(Health))]
+    [RequireComponent(typeof(Inventory))]
+    [RequireComponent(typeof(Animator))]
     public class PlayerController : MonoBehaviour
     {
         public EventHandler PowerUps;
-       
+        public PlayerMovementStatus MovementStatus;
+
         [SerializeField] private PlayerCamera FirstPersonCamera;
 
         [Header("Speed")]
@@ -40,7 +45,9 @@ namespace Player
         private float SpeedFactor = 100;
         private StandardGunScript CurrentGun;
         private CharacterController Controller;
-        private PlayerMovementStatus MovementStatus;
+        private Health playerHealth;
+        private Inventory inventory;
+
         private Vector3 DirectionalMovementInputs = new Vector3();
         private Vector3 LastDirectionalMovementInputs = new Vector3();
         private Vector3 LastDirectionalMovement = new Vector3();
@@ -65,9 +72,77 @@ namespace Player
         Coroutine SlidingCoroutine;
         Coroutine JumpingCoroutine;
         Coroutine ClimbCoroutine;
+        Coroutine BleedOutCoroutine;
 
         private Vector3 SizeOfTestBox;
         private Vector3 PositionOfTestBox;
+
+        private bool canShoot
+        {
+            get
+            {
+                return MovementStatus != PlayerMovementStatus.BleedingOut && MovementStatus != PlayerMovementStatus.Dead && MovementStatus != PlayerMovementStatus.Climbing;
+            }
+        }
+
+        private bool canMove
+        {
+            get
+            {
+                return MovementStatus == PlayerMovementStatus.Walking || MovementStatus == PlayerMovementStatus.Idling;
+            }
+        }
+
+        private bool canRotate
+        {
+            get
+            {
+                return MovementStatus != PlayerMovementStatus.Dead && MovementStatus != PlayerMovementStatus.Climbing;
+            }
+        }
+
+        private bool canClimb
+        {
+            get
+            {
+                if (MovementStatus == PlayerMovementStatus.Falling || MovementStatus == PlayerMovementStatus.Jumping)
+                {
+                    if(Input.GetKeyDown(KeyCode.Space))
+                    {
+                        Vector3 p1 = Controller.transform.position + Controller.center;
+                        Vector3 p2 = p1 + Vector3.up * Controller.height;
+                        RaycastHit hit;
+                        if (Physics.CapsuleCast(p1, p2, Controller.radius, transform.forward, out hit, MaxClimbDistance))
+                        {
+                            if ((int)Vector3.Angle(Vector3.up, hit.normal) == 90)
+                            {
+                                RaycastHit HeightCast;
+                                if (Physics.Raycast(new Ray(hit.point + new Vector3(0, MaxClimbHeight, 0), Vector3.down), out HeightCast, MaxClimbHeight))
+                                {
+                                    //Draw the gizmo and use it for the overlapbox
+                                    PositionOfTestBox = hit.point;// + transform.forward * Controller.bounds.extents.z / 2;
+                                    PositionOfTestBox.y = HeightCast.point.y + Controller.bounds.extents.y;
+
+                                    Collider[] colliders = Physics.OverlapBox(PositionOfTestBox, Controller.bounds.extents, transform.rotation);
+                                    bool canClimb = true;
+                                    foreach (var col in colliders)
+                                    {
+                                        if (col.gameObject != this.gameObject && col.gameObject != hit.transform.gameObject)
+                                        {
+                                            canClimb = false;
+                                        }
+                                    }
+
+                                    return canClimb;
+                                }
+                            }
+                        }
+                    }                         
+                }
+                return false;                       
+            }
+        }
+
 
         // Start is called before the first frame update
         void Awake()
@@ -76,6 +151,10 @@ namespace Player
             stepOffsset = Controller.stepOffset;
             FirstPersonCamera.Initialize(transform);
             animator = GetComponent<Animator>();
+            playerHealth = GetComponent<Health>();
+            inventory = GetComponentInChildren<Inventory>();
+            playerHealth.dyingEvent += onEnterBleedingOutState;
+           
         }
 
         void OnEnabled()
@@ -86,7 +165,8 @@ namespace Player
 
         // Update is called once per frame
         void Update()
-        {        
+        {
+            if (MovementStatus == PlayerMovementStatus.BleedingOut || MovementStatus == PlayerMovementStatus.Dead) return;
 
             //Get the W,A,S and D input and normalize it
             DirectionalMovementInputs = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
@@ -97,49 +177,31 @@ namespace Player
 
             UpdateMovementStatus();
             UpdateSpeed();
-            FirstPersonCamera.Rotate();
 
             CurrentGun = GetComponentInChildren<WeaponSwitching>().GetActiveWeapon().GetComponent<StandardGunScript>();
-            if (Input.GetAxisRaw("Fire1") > 0 && CurrentGun != null)
-                CurrentGun.Fire(FirstPersonCamera);
 
-            switch (MovementStatus)
+            if(canShoot)
+                if (Input.GetAxisRaw("Fire1") > 0 && CurrentGun != null)
+                    CurrentGun.Fire(FirstPersonCamera);
+
+            if (canMove)
+                Move();
+
+            if (canRotate)
+                FirstPersonCamera.Rotate();
+
+            if(canClimb)
             {
-                case PlayerMovementStatus.Walking:
-                    {
-                        Move();
-                        break;
-                    }
-
-                case PlayerMovementStatus.Idling:
-                    {
-                        Move();
-                        break;
-                    }
-
-                case PlayerMovementStatus.Climbing:
-                    {
-                        break;
-                    }
-
-                case PlayerMovementStatus.Falling:
-                case PlayerMovementStatus.Jumping:
-                    {
-                        if (Input.GetKeyDown(KeyCode.Space) && CanClimb())
-                        {
-                            if (animator != null)
-                            {
-                                animator.SetTrigger("Climb");
-                                animator.ResetTrigger("Jump");
-                                animator.ResetTrigger("Fall");
-                            }
-                            ClimbCoroutine = StartCoroutine(ClimbEvent());
-                            MovementStatus = PlayerMovementStatus.Climbing;
-                        }
-                        break;
-                    }
+                if (animator != null)
+                {
+                    animator.SetTrigger("Climb");
+                    animator.ResetTrigger("Jump");
+                    animator.ResetTrigger("Fall");
+                }
+                ClimbCoroutine = StartCoroutine(ClimbEvent());
+                MovementStatus = PlayerMovementStatus.Climbing;
             }
-
+     
             UpdateAnimationController();
         }
 
@@ -168,60 +230,68 @@ namespace Player
             JumpingCoroutine = StartCoroutine(JumpEvent());
             Controller.stepOffset = 0.01f;
         }
-
-        bool CanClimb()
-        {
-            Vector3 p1 = Controller.transform.position + Controller.center;
-            Vector3 p2 = p1 + Vector3.up * Controller.height;
-            RaycastHit hit;
-            if(Physics.CapsuleCast(p1, p2, Controller.radius, transform.forward, out hit, MaxClimbDistance))
-            {
-                if((int)Vector3.Angle(Vector3.up, hit.normal) == 90)
-                {
-                    RaycastHit HeightCast;
-                    if (Physics.Raycast(new Ray(hit.point + new Vector3(0, MaxClimbHeight, 0), Vector3.down), out HeightCast, MaxClimbHeight))
-                    {
-                        //Draw the gizmo and use it for the overlapbox
-                        PositionOfTestBox = hit.point;// + transform.forward * Controller.bounds.extents.z / 2;
-                        PositionOfTestBox.y = HeightCast.point.y + Controller.bounds.extents.y;
-
-                        Collider[] colliders = Physics.OverlapBox(PositionOfTestBox, Controller.bounds.extents, transform.rotation);
-                        bool canClimb = true;
-                        foreach (var col in colliders)
-                        {
-                            if (col.gameObject != this.gameObject && col.gameObject != hit.transform.gameObject)
-                            {
-                                canClimb = false;
-                            }
-                        }
-
-                        return canClimb;
-
-                    }
-                }
-            }
-
-            return false;
-        }
-
+   
         void UpdateAnimationController()
         {
             if (animator == null) return;
 
             animator.SetFloat("Speed", Speed);
             animator.SetFloat("Direction", CurrentDirection);
-            animator.SetBool("isGrounded", Controller.isGrounded);
+            animator.SetBool("isGrounded", Controller.isGrounded);            
+        }
+
+        void ResetCoroutines()
+        {
+            FallCoroutine = null;
+            JumpingCoroutine = null;
+            SlidingCoroutine = null;
+            ClimbCoroutine = null;
+            BleedOutCoroutine = null;
+            StopAllCoroutines();
+        }
+
+        void onEnterBleedingOutState(object sender, EventArgs e)
+        {
+            if(MovementStatus != PlayerMovementStatus.BleedingOut && MovementStatus != PlayerMovementStatus.Dead)
+            {
+                ResetCoroutines();                
+                BleedOutCoroutine = StartCoroutine(DyingEvent());
+            }
             
         }
 
-        void OnDrawGizmosSelected()
+        IEnumerator DyingEvent()
         {
-//             Gizmos.color = Color.red;
-//          // Gizmos.matrix = transform.localToWorldMatrix;
-//           Gizmos.DrawWireCube(PositionOfTestBox, Controller.bounds.size);
-        }
+            float elapsedTime = 0f;
 
+            MovementStatus = PlayerMovementStatus.BleedingOut;
 
+            //To do: Go in bleeding out animation
+            //TIme in which the player can shoot/revived etc
+            while (elapsedTime < playerHealth.TimeInBleedingOutState)
+            {
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            MovementStatus = PlayerMovementStatus.Dead;
+            elapsedTime = 0f;
+
+            //To do: Go in dead animation            
+            //Maybe go in third person or something like that so you can rotate around your dead body. 
+            while (elapsedTime < playerHealth.TimeInDeadState)
+            {
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            MovementStatus = PlayerMovementStatus.Default;
+            playerHealth.Reset();
+            inventory.Reset();
+            GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().RequestPlayerRespawn(gameObject);
+            //To do: Drop all weapons from the player (fist exluded) 
+            
+        }        
 
         IEnumerator ClimbEvent()
         {
@@ -546,7 +616,7 @@ namespace Player
             LastDirectionalMovementInputs = new Vector3(0, 0, 0);
             UpdateMovementStatus();
         }
-      
+
         bool ShouldSlide()
         {
             if(Vector3.Angle(Vector3.up, SlideNormal) > Controller.slopeLimit && Vector3.Angle(Vector3.up, SlideNormal) < 90)
@@ -567,31 +637,7 @@ namespace Player
 
             }
 
-          
-
-//             //Check the angle of the objects that got hit and take the one with the smallest distance to us
-//             RaycastHit[] hits;
-//             hits = Physics.BoxCastAll(transform.position + Vector3.up, Controller.bounds.extents - new Vector3(Controller.bounds.extents.x
-//                  * 0.8f, Controller.bounds.extents.y * 0.8f, Controller.bounds.extents.z * 0.8f), Vector3.down);
-// 
-//             if (hits.Length > 0)
-//             {
-//                 var hit = hits.OrderBy(i => i.distance).First();
-//                 float Angle = Vector3.Angle(Vector3.up, hit.normal);
-//                 if (Angle > Controller.slopeLimit)
-//                 {
-//                     SlideNormal = hit.normal;
-//                     SlideAngle = Angle;
-//                     return true;
-//                 }
-//             }
-
-            return false;
-        }
-
-        void LateUpdate()
-        {
-
+           return false;
         }
 
         void OnControllerColliderHit (ControllerColliderHit hit)
