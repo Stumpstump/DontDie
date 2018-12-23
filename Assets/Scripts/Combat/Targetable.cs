@@ -11,6 +11,8 @@ public class DamageEventArgs : EventArgs
     }
 
     public int Damage;
+
+    public float DamageAmplifier = 100;
 }
 
 public class Targetable : MonoBehaviour

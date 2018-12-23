@@ -10,9 +10,10 @@ public class EnemyMeleeAttack : MonoBehaviour
     [SerializeField] private float AttackRange;
     [SerializeField] private Vector3 AttackRangeTransformOffset;
     [SerializeField] private float AttackAngle;
-    [SerializeField] private float AttacksPerSecond;
+    [SerializeField] private float AttackInterval;
 
     private GameObject ActivePlayer;
+    private Animator animator;
 
     private float elapsedTimeSinceLastAttack;
     public float angleToPlayer
@@ -43,27 +44,31 @@ public class EnemyMeleeAttack : MonoBehaviour
     private void Awake()
     {
         ActivePlayer = GameObject.FindGameObjectWithTag("Player");
+        animator = GetComponent<Animator>();
     }
 
     private void Update()
     {
-        elapsedTimeSinceLastAttack += Time.deltaTime;
+        elapsedTimeSinceLastAttack += Time.deltaTime;        
 
-        if(elapsedTimeSinceLastAttack > AttacksPerSecond)
-        {        
+        if (elapsedTimeSinceLastAttack > AttackInterval)
+        {
             if(distanceToPlayer < AttackRange && angleToPlayer < AttackAngle)
-            {                
-                    elapsedTimeSinceLastAttack = 0f;
-                    int damage = useDynamicDamage == false ? Damage : Random.Range(Damage, DynamicMaxDamage);
-                    ActivePlayer.GetComponent<Targetable>().ReceiveDamage(this, new DamageEventArgs(damage));
-                    //Play attack animation                
+            {
+                animator.SetTrigger("Attack");
+                elapsedTimeSinceLastAttack = 0f;
             }
-
         }
     }
 
     private void OnDrawGizmosSelected()
     {
         Gizmos.DrawWireSphere(transform.position + AttackRangeTransformOffset, AttackRange);
+    }
+
+    private void DealDamage()
+    {        
+        int damage = useDynamicDamage == false ? Damage : Random.Range(Damage, DynamicMaxDamage);
+        ActivePlayer.GetComponent<Targetable>().ReceiveDamage(this, new DamageEventArgs(damage));
     }
 }

@@ -68,12 +68,18 @@ namespace Combat
         void Awake()
         {
             Reset();
-            if(GetComponent<Targetable>())
-                GetComponent<Targetable>().ReceiveDamageEvent += ReceiveDamage;
+
+            Targetable[] targetables = GetComponentsInChildren<Targetable>();
+            for (int i = 0; i < targetables.Length; i++)
+            {
+                targetables[i].ReceiveDamageEvent += ReceiveDamage;
+            }
         }
 
         public void ReceiveDamage(object sender, DamageEventArgs Damage)
         {
+            if (currentHealth <= 0) return;
+
             if(DamageText != null)
             {
                 if(this.GetComponentInChildren<Canvas>())
