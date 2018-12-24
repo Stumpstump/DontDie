@@ -8,6 +8,8 @@ TagManager:
   - Spawner
   - Stairs
   - Weapon
+  - PlayerRespawnNode
+  - GameManager
   layers:
   - Default
   - TransparentFX

@@ -16,12 +16,18 @@ namespace Player
         private void Awake()
         {
             Weapons = this.GetComponentInChildren<WeaponSwitching>();
-
-
         }
 
         private void Update()
         {
+
+        }
+
+        public void Reset()
+        {
+            Items = new Dictionary<string, List<GameObject>>();
+            EquipedWeapons = new List<GameObject>();
+            Weapons.ResetWeapons();
         }
 
         //Returns false if an item with the same unique id already exists

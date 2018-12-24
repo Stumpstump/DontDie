@@ -20,7 +20,7 @@ namespace DDS
         /// Set FrustumCamera to null if you don't want the Frustum Check.
         /// Returns false if it couldn't allocate the desired amount of positions.
         /// </summary>
-        public override bool GetPositions(SpawnAbleObject Object, int DesiredAmountOfPositions, Camera FrustumCamera, out Vector3[] ReturnedPositions)
+        public override bool GetPositions(SpawnAbleObject Object, int DesiredAmountOfPositions, Camera FrustumCamera, bool useCharacterController, out Vector3[] ReturnedPositions)
         {
 
             PersonalLogicScript PersonalScript = Object.ObjectToSpawn.GetComponent<PersonalLogicScript>();
