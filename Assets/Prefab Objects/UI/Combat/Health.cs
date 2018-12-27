@@ -7,7 +7,6 @@ using System;
 
 namespace Combat
 {
-    [RequireComponent(typeof(Targetable))]
     public class Health : MonoBehaviour
     {
         public event EventHandler dyingEvent;
@@ -72,6 +71,7 @@ namespace Combat
             Targetable[] targetables = GetComponentsInChildren<Targetable>();
             for (int i = 0; i < targetables.Length; i++)
             {
+                Debug.Log("a");
                 targetables[i].ReceiveDamageEvent += ReceiveDamage;
             }
         }

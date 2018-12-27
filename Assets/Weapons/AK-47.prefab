@@ -271,7 +271,7 @@ MonoBehaviour:
   damage: 10
   dynamicDamage: 20
   maxShootingRange: 100
-  spreadRadius: 1
+  spreadRadius: 0.5
   roundsPerSecond: 8
   magazineSize: 30
   reloadTime: 1.5
