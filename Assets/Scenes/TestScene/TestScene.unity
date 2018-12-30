@@ -2573,6 +2573,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visionRange: 50
+  minMovementSpeed: 0
+  maxMovementSpeed: 0
 --- !u!114 &1682243810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4969,10 +4971,20 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6353218188976229808, guid: 4fd4bbbeda212406180e8b1b206c41d5,
+        type: 3}
+      propertyPath: minMovementSpeed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6353218188976229808, guid: 4fd4bbbeda212406180e8b1b206c41d5,
+        type: 3}
+      propertyPath: maxMovementSpeed
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 6353218189778389217, guid: 4fd4bbbeda212406180e8b1b206c41d5,
         type: 3}
       propertyPath: MaxHealth
-      value: 2000000000
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4fd4bbbeda212406180e8b1b206c41d5, type: 3}

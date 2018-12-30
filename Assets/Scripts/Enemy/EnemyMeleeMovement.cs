@@ -9,6 +9,9 @@ using System;
 public class EnemyMeleeMovement : MonoBehaviour
 {
     [SerializeField] private float visionRange;
+    [SerializeField] private float minMovementSpeed;
+    [SerializeField] private float maxMovementSpeed;
+
     private NavMeshAgent localAgent;
     private EnemyMeleeAttack attackScript;
     private GameObject activePlayer;
@@ -21,6 +24,8 @@ public class EnemyMeleeMovement : MonoBehaviour
         activePlayer = GameObject.FindGameObjectWithTag("Player");
         attackScript = this.GetComponent<EnemyMeleeAttack>();
         animator = this.GetComponent<Animator>();
+
+        localAgent.speed = UnityEngine.Random.Range(minMovementSpeed, maxMovementSpeed);
 
         health = GetComponent<Combat.Health>();
 
