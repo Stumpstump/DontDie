@@ -12,29 +12,30 @@ labels:
 - .50
 - cal
 ModelImporter:
-  serializedVersion: 24
-  internalIDToNameTable:
-  - first:
-      43: 4300000
-    second: BarrettM107
-  - first:
-      43: 4300002
-    second: Barrett_Magazine
-  - first:
-      43: 4300004
-    second: Lever
-  - first:
-      43: 4300006
-    second: M107_Shell
-  - first:
-      74: 7400000
-    second: Take 001 //// BarrettM107
-  - first:
-      74: 7400002
-    second: Shoot //// BarrettM107
-  - first:
-      74: -3704289112126983070
-    second: Shoot
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: Barrett_Magazine
+    100002: //RootNode
+    100004: Lever
+    100006: M107_Shell
+    400000: Barrett_Magazine
+    400002: //RootNode
+    400004: Lever
+    400006: M107_Shell
+    2300000: Barrett_Magazine
+    2300002: //RootNode
+    2300004: Lever
+    2300006: M107_Shell
+    3300000: Barrett_Magazine
+    3300002: //RootNode
+    3300004: Lever
+    3300006: M107_Shell
+    4300000: BarrettM107
+    4300002: Barrett_Magazine
+    4300004: Lever
+    4300006: M107_Shell
+    7400000: Shoot
+    11100000: //RootNode
   externalObjects:
   - first:
       type: UnityEngine:Material
@@ -76,7 +77,6 @@ ModelImporter:
     - serializedVersion: 16
       name: Shoot
       takeName: 
-      internalID: -3704289112126983070
       firstFrame: 1
       lastFrame: 11
       wrapMode: 2
@@ -116,13 +116,10 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
+    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
-    skinWeightsMode: 0
-    maxBonesPerVertex: 4
-    minBoneWeight: 0.001
-    meshOptimizationFlags: -1
     indexFormat: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
